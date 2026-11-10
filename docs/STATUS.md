@@ -53,6 +53,9 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - Taxas e faixas do catálogo de demonstração e premissas do simulador: quem define é o Kayke (T-05). São ilustrativas.
 - Pix na maquininha: o RFC assume taxa zero. Conferir antes de usar esse valor em qualquer cálculo.
 - Programas de afiliado: quais existem e quanto pagam. Só importa se o modelo de receita entrar no pitch.
+- Vídeo, marcas: o catálogo da demo é fictício e sem marcas reais (AGENTS.md), mas a issue nº 8 e o `docs/roteiro.md` do Kayke usam Cielo, InfinitePay e Ton com taxas reais. Decidir: manter o catálogo fictício ou mostrar marcas reais com fonte e data na tela, em cada taxa (10/11, ver `docs/roteiro-unico-proposta.md`).
+- Vídeo, quantidade: o roteiro do Kayke fala em "passar de fase" e créditos para abrir a empresa, e a seção "Próximos passos" fala em um rascunho de 3 minutos para liberar créditos. É um vídeo só ou dois (pitch para os créditos e entrega final do evento)? (10/11)
+- Vídeo, idioma: inglês (preferido pelo evento) ou português (aceito). O roteiro do Kayke está em português e `docs/roteiro-video.md` em inglês, com tradução (10/11).
 
 ## Próximos passos
 
@@ -78,3 +81,4 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - 08/11: RFC "Comparador de Maquininhas (Pós-Cred)" considerado. Proposta: absorver o simulador de custo, a métrica de economia e a referência do Banco Central no CredFácil; afiliados e comparação por marca ficam fora do MVP (D-011 a D-013). Documentos de produto, arquitetura, dados e backlog atualizados.
 - 09/11: time decidiu hospedar na Vercel. Pesquisa: o plano grátis (Hobby) só permite deploy pelo dono da conta; plano B e teste em D-004, D-014 e T-36.
 - 10/11: suporte a Gemini CLI (`GEMINI.md`, seção em `docs/IA.md`).
+- 10/11: roteiro de fala do vídeo (`docs/roteiro-video.md`) e proposta de roteiro único junto com o do Kayke (`docs/roteiro-unico-proposta.md`). Três perguntas novas em "Em aberto": marcas, quantidade de vídeos e idioma.
