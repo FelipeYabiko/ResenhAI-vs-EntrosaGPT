@@ -2,7 +2,7 @@
 
 Consulta de crédito e recomendação de maquininha para vendedores de campo, com dados públicos, regras explicáveis e interface acessível.
 
-Projeto do time [nome do time] no Hack Brasil 2026, trilha **Pagamentos & finanças**.
+Projeto do time ResenhaAI vs EntrosaGPT no Hack Brasil 2026, trilha **Pagamentos & finanças**.
 
 > Status: em construção. Este README será atualizado antes do envio (30/11/2026).
 
