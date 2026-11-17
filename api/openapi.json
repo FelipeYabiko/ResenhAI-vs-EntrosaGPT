@@ -145,16 +145,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Erro"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         }
       },
@@ -208,16 +198,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Erro"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         }
       }
@@ -270,16 +250,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Erro"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         }
       },
@@ -438,24 +408,61 @@
           "eventos"
         ],
         "summary": "Eventos",
+        "description": "Live proposal events for the back-office panel. New listeners get only new events;\na browser that reconnects sends Last-Event-ID and gets what it missed.",
         "operationId": "eventos_v1_eventos_get",
+        "parameters": [
+          {
+            "name": "last-event-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last-Event-Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Server-Sent Events. Each message: `event: <tipo>` and the Evento JSON in `data:`.",
+            "description": "Server-Sent Events. Each message: `id`, `event: <tipo>` and the Evento JSON in `data:`.",
             "content": {
               "text/event-stream": {
+                "itemSchema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "string"
+                    },
+                    "event": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "retry": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Evento"
                 }
               }
             }
           },
-          "501": {
-            "description": "Not Implemented",
+          "422": {
+            "description": "Validation Error",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Erro"
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -901,6 +908,19 @@
           "em_cache"
         ],
         "title": "Fonte"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
       },
       "ListaPropostas": {
         "properties": {
@@ -1497,6 +1517,46 @@
           "mensal_percentual"
         ],
         "title": "TaxasAntecipacao"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
       },
       "DadosEvento": {
         "additionalProperties": false,

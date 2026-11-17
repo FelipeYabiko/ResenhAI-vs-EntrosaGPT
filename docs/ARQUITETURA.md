@@ -228,7 +228,7 @@ Saída de `GET /v1/saude`:
 
 ### Evento
 
-Cada evento do SSE vai em uma mensagem `event: <tipo>` com o JSON abaixo em `data:`.
+Cada evento do SSE vai em uma mensagem com `id: <id do evento>`, `event: <tipo>` e o JSON abaixo em `data:`. Quem conecta recebe só os eventos novos (o painel carrega a lista com `GET /v1/propostas` antes). Se a conexão cair, o navegador reconecta sozinho mandando o cabeçalho `Last-Event-ID`, e a API reenvia o que ficou para trás. A API manda um comentário de tempo em tempo para a conexão não ser fechada por inatividade.
 
 ```json
 {
@@ -242,6 +242,10 @@ Cada evento do SSE vai em uma mensagem `event: <tipo>` com o JSON abaixo em `dat
 ```
 
 Tipos: `proposta.criada`, `proposta.pendente`, `proposta.aprovada`, `proposta.recusada`. Se `WEBHOOK_MATRIZ_URL` estiver definida, a API também faz `POST` do mesmo evento com a assinatura HMAC no cabeçalho `X-Assinatura`. Isso cumpre o "webhook para o painel" do documento original e mantém o SSE como caminho principal da demo.
+
+Por enquanto, consultas, propostas e eventos ficam na memória da API (`api/app/memoria.py`) e somem quando ela reinicia. O Postgres entra no lugar quando o banco for criado.
+
+O site chama a API de outro endereço. Só as origens de `CORS_ORIGENS` (`.env.example`) podem chamá-la.
 
 ## Modelo de dados (proposta)
 
