@@ -11,7 +11,11 @@ from collections.abc import AsyncIterator
 
 from app.schemas import ConsultaResultado, Evento, Proposta
 
-LIMITE_HISTORICO = 1000
+# Limits keep a public demo (no login) from filling the memory of the API.
+LIMITE_HISTORICO = 1000  # events kept for reconnecting listeners
+LIMITE_GUARDADOS = 1000  # queries and proposals; the oldest ones are dropped
+LIMITE_OUVINTES = 50  # open /v1/eventos connections
+LIMITE_FILA = 100  # undelivered events per listener; a slow listener loses the oldest ones
 
 
 class CentralDeEventos:
@@ -21,12 +25,20 @@ class CentralDeEventos:
         self._historico: deque[Evento] = deque(maxlen=LIMITE_HISTORICO)
         self._ouvintes: set[asyncio.Queue[Evento]] = set()
 
+    def lotado(self) -> bool:
+        return len(self._ouvintes) >= LIMITE_OUVINTES
+
+    def total_ouvintes(self) -> int:
+        return len(self._ouvintes)
+
     def historico(self) -> list[Evento]:
         return list(self._historico)
 
     def publicar(self, evento: Evento) -> None:
         self._historico.append(evento)
         for fila in self._ouvintes:
+            if fila.full():
+                fila.get_nowait()
             fila.put_nowait(evento)
 
     async def assinar(self, depois_de: str | None) -> AsyncIterator[Evento]:
@@ -34,8 +46,8 @@ class CentralDeEventos:
 
         An unknown id (for example, after an API restart) replays the whole history.
         """
-        fila: asyncio.Queue[Evento] = asyncio.Queue()
-        self._ouvintes.add(fila)  # register before reading history, so nothing slips between the two
+        fila: asyncio.Queue[Evento] = asyncio.Queue(maxsize=LIMITE_FILA)
+        self._ouvintes.add(fila)  # keep these two steps with no await between them
         try:
             perdidos = self.historico()
             ids = [e.id for e in perdidos]
@@ -51,13 +63,22 @@ class CentralDeEventos:
             self._ouvintes.discard(fila)
 
 
+class Guardados[T](dict[str, T]):
+    """A dict that keeps at most LIMITE_GUARDADOS items, dropping the oldest."""
+
+    def __setitem__(self, chave: str, valor: T) -> None:
+        super().__setitem__(chave, valor)
+        while len(self) > LIMITE_GUARDADOS:
+            del self[next(iter(self))]
+
+
 class Memoria:
     def __init__(self) -> None:
         self.limpar()
 
     def limpar(self) -> None:
-        self.consultas: dict[str, ConsultaResultado] = {}
-        self.propostas: dict[str, Proposta] = {}
+        self.consultas: Guardados[ConsultaResultado] = Guardados()
+        self.propostas: Guardados[Proposta] = Guardados()
         self.eventos = CentralDeEventos()
 
 

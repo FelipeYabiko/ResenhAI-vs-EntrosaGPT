@@ -5,11 +5,12 @@ answer 501 with the standard error body; each one points to its issue.
 """
 
 import os
+import re
 from collections.abc import AsyncIterable
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from fastapi import FastAPI, Header, Request
+from fastapi import Depends, FastAPI, Header, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
@@ -100,6 +101,9 @@ def _depois_da_validacao(entrada: ConsultaEntrada) -> ConsultaResultado:
     raise _nao_implementado()  # built in issue #16
 
 
+ID_EVENTO = re.compile(r"e_[0-9a-f]{12}")
+
+
 def _agora() -> datetime:
     return datetime.now(UTC)
 
@@ -119,7 +123,9 @@ def _proposta_ou_404(proposta_id: str) -> Proposta:
     tags=["propostas"],
 )
 async def criar_proposta(entrada: PropostaEntrada) -> Proposta:
-    # async: publishing to listeners must run on the event loop that serves /v1/eventos.
+    # Proposal routes are async (with no await) on purpose: they run on the event loop one at a time,
+    # so the in-memory dict is never read while another request changes it, and listeners are woken
+    # on the same loop that serves /v1/eventos.
     consulta = memoria.consultas.get(entrada.consulta_id)
     if consulta is None:
         raise ErroApi(404, "nao_encontrado", "Consulta não encontrada. Faça a consulta antes de enviar a proposta.")
@@ -159,7 +165,7 @@ async def criar_proposta(entrada: PropostaEntrada) -> Proposta:
 
 
 @app.get("/v1/propostas", response_model=ListaPropostas, responses=_erros(422), tags=["propostas"])
-def listar_propostas(status: StatusProposta | None = None) -> ListaPropostas:
+async def listar_propostas(status: StatusProposta | None = None) -> ListaPropostas:
     propostas = [p for p in memoria.propostas.values() if status is None or p.status == status]
     return ListaPropostas(propostas=sorted(propostas, key=lambda p: p.criada_em, reverse=True))
 
@@ -170,7 +176,7 @@ def listar_propostas(status: StatusProposta | None = None) -> ListaPropostas:
     responses=_erros(404, 422),
     tags=["propostas"],
 )
-def obter_proposta(proposta_id: str) -> Proposta:
+async def obter_proposta(proposta_id: str) -> Proposta:
     return _proposta_ou_404(proposta_id)
 
 
@@ -194,6 +200,12 @@ def contrato_simulado(proposta_id: str) -> Response:
     raise _nao_implementado()  # built in issue #24
 
 
+async def _vaga_para_ouvinte() -> None:
+    # Checked before the stream starts, so the client gets a real 503 instead of a broken stream.
+    if memoria.eventos.lotado():
+        raise ErroApi(503, "muitas_conexoes", "Muitos painéis conectados agora. Tente de novo em instantes.")
+
+
 @app.get(
     "/v1/eventos",
     response_class=EventSourceResponse,
@@ -201,13 +213,18 @@ def contrato_simulado(proposta_id: str) -> Response:
         200: {
             "description": "Server-Sent Events. Each message: `id`, `event: <tipo>` and the Evento JSON in `data:`.",
             "content": {"text/event-stream": {"schema": {"$ref": "#/components/schemas/Evento"}}},
-        }
+        },
+        **_erros(422, 503),
     },
     tags=["eventos"],
 )
-async def eventos(last_event_id: str | None = Header(default=None)) -> AsyncIterable[ServerSentEvent]:
+async def eventos(
+    last_event_id: str | None = Header(default=None), _: None = Depends(_vaga_para_ouvinte)
+) -> AsyncIterable[ServerSentEvent]:
     """Live proposal events for the back-office panel. New listeners get only new events;
     a browser that reconnects sends Last-Event-ID and gets what it missed."""
+    if last_event_id is not None and not ID_EVENTO.fullmatch(last_event_id):
+        last_event_id = None  # not one of our ids: treat as a new listener
     async for evento in memoria.eventos.assinar(depois_de=last_event_id):
         yield ServerSentEvent(id=evento.id, event=evento.tipo, data=evento.model_dump(mode="json"))
 
