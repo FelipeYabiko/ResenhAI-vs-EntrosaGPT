@@ -54,6 +54,7 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - Lista de temas proibidos do FAQ do site, ainda não lida na íntegra.
 - Quem é o agente: de uma credenciadora específica ou de um marketplace multi-provedor (D-012).
 - Concorrentes. Há comparadores de maquininha online (por exemplo, calculadoradetaxas.com.br e simuladores do iDinheiro, vistos em resultados de busca; não abri as páginas) e ferramentas internas de credenciadoras (não pesquisadas). Olhar 3 ou 4 antes de afirmar qualquer diferencial.
+- CNPJ alfanumérico: a Receita Federal anunciou CNPJ com letras para inscrições novas a partir de julho de 2026 (não conferi a norma nem a regra do dígito). A validação de hoje (#14) aceita só 14 dígitos. Conferir no site da Receita e decidir se a demo precisa aceitar. Como a demo só aceita a lista de CNPJs de demonstração, o impacto é baixo (17/11).
 - Recurso "Taxas de desconto (MDR) e volumetria" do Banco Central: nome do endpoint, campos e periodicidade (T-19).
 - Taxas e faixas do catálogo de demonstração e premissas do simulador: quem define é o Kayke (T-05). São ilustrativas.
 - Pix na maquininha: o RFC assume taxa zero. Conferir antes de usar esse valor em qualquer cálculo.
@@ -90,3 +91,4 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - 17/11: protótipo do Figma recebido; issues #12 a #26 criadas; decisões D-015 a D-018.
 - 17/11: contrato da API v1 com schemas, OpenAPI e testes de contrato (issue #12); proposta D-019.
 - 17/11: esqueleto da API com servidor local, lint e um comando de verificação (issue #13).
+- 17/11: validação de CNPJ na API, antes de qualquer outra etapa (issue #14). Pergunta nova: CNPJ alfanumérico.

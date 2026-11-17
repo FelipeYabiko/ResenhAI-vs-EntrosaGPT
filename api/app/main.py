@@ -11,6 +11,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, Response
 
+from app.cnpj import cnpj_valido
 from app.schemas import (
     ConsultaEntrada,
     ConsultaResultado,
@@ -71,6 +72,14 @@ def saude() -> Saude:
     tags=["consultas"],
 )
 def criar_consulta(entrada: ConsultaEntrada) -> ConsultaResultado:
+    # RF-01: reject a wrong CNPJ before any other step, so no external source is called.
+    if not cnpj_valido(entrada.cnpj):
+        raise ErroApi(422, "cnpj_invalido", "CNPJ inválido. Confira os 14 dígitos.")
+    return _depois_da_validacao(entrada)
+
+
+def _depois_da_validacao(entrada: ConsultaEntrada) -> ConsultaResultado:
+    """Next step of the query (sources, scoring, simulation). Tests swap it to prove validation runs first."""
     raise _nao_implementado()  # built in issue #16
 
 
