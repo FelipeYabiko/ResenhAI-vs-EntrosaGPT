@@ -113,3 +113,8 @@ def test_rota_em_construcao_responde_501_no_formato_de_erro():
     )
     assert resposta.status_code == 501
     assert schemas.Erro.model_validate(resposta.json()).erro.codigo == "nao_implementado"
+
+
+def test_agente_e_identificador_de_perfil_demo():
+    with pytest.raises(ValidationError):
+        schemas.PropostaEntrada(consulta_id="c_01", agente="Maria da Silva")

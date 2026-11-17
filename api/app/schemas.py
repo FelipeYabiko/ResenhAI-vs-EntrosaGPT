@@ -238,12 +238,17 @@ class PropostaEntrada(Modelo):
         {"consulta_id": "c_01", "agente": "agente_demo", "observacoes": "Comerciante prefere receber em D+1."}
     )
     consulta_id: str
-    agente: str = Field(description="Demo profile chosen in 'Entrar na demonstração'. Never a real name.")
-    observacoes: str | None = Field(default=None, max_length=500)
+    agente: str = Field(
+        pattern=r"^[a-z0-9_]{1,40}$",
+        description="Demo profile id chosen in 'Entrar na demonstração', e.g. agente_demo. Never a real name.",
+    )
+    observacoes: str | None = Field(
+        default=None, max_length=500, description="Free text about the sale. Must not contain personal data."
+    )
 
 
 class PendenciaEntrada(Modelo):
-    descricao: str = Field(min_length=1, max_length=500)
+    descricao: str = Field(min_length=1, max_length=500, description="Must not contain personal data.")
 
 
 class Pendencia(PendenciaEntrada):

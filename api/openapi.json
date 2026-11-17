@@ -981,7 +981,8 @@
             "type": "string",
             "maxLength": 500,
             "minLength": 1,
-            "title": "Descricao"
+            "title": "Descricao",
+            "description": "Must not contain personal data."
           },
           "criada_em": {
             "type": "string",
@@ -1003,7 +1004,8 @@
             "type": "string",
             "maxLength": 500,
             "minLength": 1,
-            "title": "Descricao"
+            "title": "Descricao",
+            "description": "Must not contain personal data."
           }
         },
         "additionalProperties": false,
@@ -1263,8 +1265,9 @@
           },
           "agente": {
             "type": "string",
+            "pattern": "^[a-z0-9_]{1,40}$",
             "title": "Agente",
-            "description": "Demo profile chosen in 'Entrar na demonstração'. Never a real name."
+            "description": "Demo profile id chosen in 'Entrar na demonstração', e.g. agente_demo. Never a real name."
           },
           "observacoes": {
             "anyOf": [
@@ -1276,7 +1279,8 @@
                 "type": "null"
               }
             ],
-            "title": "Observacoes"
+            "title": "Observacoes",
+            "description": "Free text about the sale. Must not contain personal data."
           }
         },
         "additionalProperties": false,

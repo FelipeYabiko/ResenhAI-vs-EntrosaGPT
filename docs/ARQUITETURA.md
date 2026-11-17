@@ -112,7 +112,7 @@ Entrada mínima (formulário da landing):
 { "cnpj": "00000000000191", "perfil_vendas": { "faturamento_mensal": 10000.00 } }
 ```
 
-Regras de entrada: o mix soma 100. `prazo_recebimento` é `D+0`, `D+1`, `D+2`, `D+14` ou `D+30`. Taxa `null` quer dizer "não informada" e nunca é tratada como zero.
+Regras de entrada: o mix soma 100. `prazo_recebimento` é `D+0`, `D+1`, `D+2`, `D+14` ou `D+30`. Taxa `null` quer dizer "não informada" e nunca é tratada como zero. No exemplo, `"pix": 0.0` é a taxa que o comerciante informou, não um valor assumido pela API.
 
 Saída `200`:
 
@@ -163,7 +163,7 @@ Saída `200`:
 }
 ```
 
-Os números do exemplo são ilustrativos. `economia` vem `null` quando faltam o mix ou as taxas atuais: sem eles não há o que comparar, e a API não inventa um perfil padrão. Nesse caso a tela convida a completar o perfil. `fontes[].status` é `ok`, `cache` (fonte fora do ar, devolvido o último dado guardado, com a data dele) ou `indisponivel`. `pontuacao.faixa` vai de `A` a `E`. Erros: `422`, `429`, `502`.
+Os números do exemplo são ilustrativos. `economia` vem `null` quando faltam o mix ou as taxas atuais: sem eles não há o que comparar, e a API não inventa um perfil padrão. Nesse caso a tela convida a completar o perfil. `fontes[].status` é `ok`, `cache` (fonte fora do ar, devolvido o último dado guardado, com a data dele) ou `indisponivel`. `pontuacao.faixa` vai de `A` a `E`. Erros: `422`, `429`, `501` (enquanto não implementada) e `502`.
 
 ### Propostas
 
@@ -177,7 +177,7 @@ Os números do exemplo são ilustrativos. `economia` vem `null` quando faltam o 
 | `GET /v1/eventos` | Fluxo SSE de eventos | `text/event-stream` |
 | `GET /v1/saude` | Verificação de saúde | `200` |
 
-`agente` é o perfil de demonstração escolhido em "Entrar na demonstração" (D-015). Não há login nem nome de pessoa real.
+`agente` é o identificador do perfil de demonstração escolhido em "Entrar na demonstração" (D-015), só letras minúsculas, números e `_`. Não há login nem nome de pessoa real. `observacoes` e `pendencias[].descricao` são texto livre: a tela avisa para não escrever dado pessoal (nome, CPF, telefone, e-mail).
 
 Entrada de `POST /v1/propostas`:
 

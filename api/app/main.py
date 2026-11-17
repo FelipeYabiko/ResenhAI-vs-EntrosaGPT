@@ -51,8 +51,8 @@ async def _tratar_validacao(_: Request, exc: RequestValidationError) -> JSONResp
     return _erro(422, "entrada_invalida", f"Confira estes campos: {campos}.")
 
 
-def _nao_implementado(issue: int) -> ErroApi:
-    return ErroApi(501, "nao_implementado", f"Rota prevista no contrato v1, em construção (issue #{issue}).")
+def _nao_implementado() -> ErroApi:
+    return ErroApi(501, "nao_implementado", "Rota prevista no contrato v1, ainda em construção.")
 
 
 def _erros(*status: int) -> dict:
@@ -71,7 +71,7 @@ def saude() -> Saude:
     tags=["consultas"],
 )
 def criar_consulta(entrada: ConsultaEntrada) -> ConsultaResultado:
-    raise _nao_implementado(16)
+    raise _nao_implementado()  # built in issue #16
 
 
 @app.post(
@@ -82,12 +82,12 @@ def criar_consulta(entrada: ConsultaEntrada) -> ConsultaResultado:
     tags=["propostas"],
 )
 def criar_proposta(entrada: PropostaEntrada) -> Proposta:
-    raise _nao_implementado(23)
+    raise _nao_implementado()  # built in issue #23
 
 
 @app.get("/v1/propostas", response_model=ListaPropostas, responses=_erros(422, 501), tags=["propostas"])
 def listar_propostas(status: StatusProposta | None = None) -> ListaPropostas:
-    raise _nao_implementado(23)
+    raise _nao_implementado()  # built in issue #23
 
 
 @app.get(
@@ -97,7 +97,7 @@ def listar_propostas(status: StatusProposta | None = None) -> ListaPropostas:
     tags=["propostas"],
 )
 def obter_proposta(proposta_id: str) -> Proposta:
-    raise _nao_implementado(23)
+    raise _nao_implementado()  # built in issue #23
 
 
 @app.patch(
@@ -107,7 +107,7 @@ def obter_proposta(proposta_id: str) -> Proposta:
     tags=["propostas"],
 )
 def atualizar_proposta(proposta_id: str, entrada: PropostaAtualizacao) -> Proposta:
-    raise _nao_implementado(24)
+    raise _nao_implementado()  # built in issue #24
 
 
 @app.get(
@@ -117,7 +117,7 @@ def atualizar_proposta(proposta_id: str, entrada: PropostaAtualizacao) -> Propos
     tags=["propostas"],
 )
 def contrato_simulado(proposta_id: str) -> Response:
-    raise _nao_implementado(24)
+    raise _nao_implementado()  # built in issue #24
 
 
 @app.get(
@@ -133,7 +133,7 @@ def contrato_simulado(proposta_id: str) -> Response:
     tags=["eventos"],
 )
 def eventos() -> Response:
-    raise _nao_implementado(23)
+    raise _nao_implementado()  # built in issue #23
 
 
 def _openapi() -> dict:
