@@ -14,7 +14,7 @@ Os nomes dos botões podem mudar um pouco nos sites do Render e do Netlify. Se a
 
 ## 1. API no Render
 
-A configuração está em `render.yaml`, na raiz do repositório. O Render só lê esse arquivo da `main`, então faça o merge dos PRs da API antes.
+A configuração está em `render.yaml`, na raiz do repositório. Faça o merge dos PRs da API antes, para o deploy sair da `main`.
 
 1. Entre em https://render.com e clique em **Sign in with GitHub**.
 2. Clique em **New** e depois em **Blueprint**.
@@ -39,7 +39,11 @@ O arquivo `.github/workflows/despertar-api.yml` chama a API a cada 10 minutos, d
 3. Nome: `API_URL`. Valor: o endereço do passo 1.6, sem `/` no fim.
 4. Para testar: aba **Actions**, workflow **Despertar API**, botão **Run workflow**. Deve terminar com o ícone verde.
 
-O GitHub não garante o horário exato dos agendamentos, então ainda pode haver um atraso de vez em quando. **Antes de gravar o vídeo e antes da avaliação, abra `<endereço>/v1/saude` e espere responder.**
+Cuidados:
+
+- O agendamento só roda depois que o arquivo estiver na `main`.
+- O plano grátis do Render tem um limite de horas por mês. Pelo que lembramos, cerca de 750 horas, o que uma API acordada o mês todo quase esgota (não conferido). **Não crie outro serviço grátis na mesma conta do Render.**
+- O GitHub não garante o horário exato dos agendamentos, então ainda pode haver um atraso de vez em quando. **Antes de gravar o vídeo e antes da avaliação, abra `<endereço>/v1/saude` e espere responder.**
 
 ## 3. Site no Netlify
 

@@ -53,7 +53,7 @@ Donos (proposta): `/api/fontes` e `/api/app` Felipe; `/api/scoring` e `/api/reco
 | Tempo real | Server-Sent Events | Mais simples que WebSocket para "matriz recebe a proposta" |
 | Voz | Web Speech API (`SpeechRecognition`) | Sem custo, no navegador. Funciona em navegadores baseados em Chromium. Precisa de alternativa digitada |
 | Testes | pytest (API), Vitest e Playwright (web) | Fluxo principal coberto por teste de ponta a ponta |
-| Hospedagem | Vercel, decidido pelo time (D-004, em parte) | Precisa ter HTTPS, ficar no ar até 15/12 e não "dormir" durante a gravação. API em Python, SSE e banco na Vercel ainda não verificados. Plano grátis só permite deploy pelo dono (D-014) |
+| Hospedagem | Site no Netlify, API no Render (D-020; a Vercel foi descartada) | HTTPS e deploy automático da `main` pelo time todo. O Netlify não roda Python, por isso a API fica no Render, como um processo contínuo (bom para SSE e para a memória da API). O Render grátis desliga após 15 min sem uso: despertador agendado e aquecer antes de gravar |
 
 ## Contrato da API (v1)
 

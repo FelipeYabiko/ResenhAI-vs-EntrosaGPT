@@ -93,5 +93,5 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - 17/11: contrato da API v1 com schemas, OpenAPI e testes de contrato (issue #12); proposta D-019.
 - 17/11: esqueleto da API com servidor local, lint e um comando de verificação (issue #13).
 - 17/11: validação de CNPJ na API, antes de qualquer outra etapa (issue #14). Pergunta nova: CNPJ alfanumérico.
-- 17/11: propostas e eventos ao vivo na API, com a matriz recebendo a proposta em cerca de 15 ms no teste local (issue #23). Risco novo: eventos ao vivo na Vercel.
+- 17/11: propostas e eventos ao vivo na API, com a matriz recebendo a proposta em cerca de 15 ms no teste local (issue #23). Risco novo: eventos ao vivo na Vercel (resolvido pela D-020).
 - 17/11: hospedagem trocada para Netlify (site) e Render (API), por causa do deploy por várias contas e do SSE (D-020). Configuração e passo a passo prontos (#26).
