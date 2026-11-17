@@ -16,7 +16,7 @@ def cnpj_valido(cnpj: str) -> bool:
     """True when cnpj has exactly 14 digits (no mask) and valid check digits."""
     if len(cnpj) != 14 or not cnpj.isascii() or not cnpj.isdigit():
         return False
-    if len(set(cnpj)) == 1:  # 00000000000000, 11111111111111... pass the formula but are not real
+    if len(set(cnpj)) == 1:  # all digits equal is never a real CNPJ (00000000000000 even passes the formula)
         return False
     numeros = [int(c) for c in cnpj]
     primeiro = _digito(numeros[:12], PESOS_PRIMEIRO)

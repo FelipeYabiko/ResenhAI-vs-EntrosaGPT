@@ -14,8 +14,8 @@ INVALIDOS = [
     "00000000000192",  # wrong second check digit
     "00000000000181",  # wrong first check digit
     "11222333000180",
-    "11111111111111",  # all digits equal: valid by the formula, but not a real CNPJ
-    "00000000000000",
+    "11111111111111",
+    "00000000000000",  # passes the check digit formula, but is not a real CNPJ
     "1122233300018",  # 13 digits
     "112223330001811",  # 15 digits
     "11.222.333/0001-81",  # mask must be removed by the front end
@@ -60,7 +60,8 @@ def test_consulta_com_digito_errado_devolve_cnpj_invalido():
 def test_cnpj_invalido_e_recusado_antes_de_qualquer_outra_etapa(monkeypatch):
     chamadas = []
     monkeypatch.setattr("app.main._depois_da_validacao", _espiao(chamadas))
-    _consultar("11222333000180")
+    resposta = _consultar("11222333000180")
+    assert resposta.status_code == 422
     assert chamadas == []
 
 

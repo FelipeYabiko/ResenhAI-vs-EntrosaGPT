@@ -79,6 +79,7 @@ def criar_consulta(entrada: ConsultaEntrada) -> ConsultaResultado:
 
 
 def _depois_da_validacao(entrada: ConsultaEntrada) -> ConsultaResultado:
+    """Next step of the query (sources, scoring, simulation). Tests swap it to prove validation runs first."""
     raise _nao_implementado()  # built in issue #16
 
 
