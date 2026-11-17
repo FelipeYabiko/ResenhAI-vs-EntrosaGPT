@@ -37,7 +37,32 @@ Detalhes em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) e [`docs/PRODUTO.md`](d
 
 ## Como rodar
 
-Em construção. As instruções de instalação, variáveis de ambiente (`.env.example`) e testes entram aqui assim que o primeiro fluxo funcionar.
+A web (Next.js) ainda está em construção. A API já roda:
+
+Precisa de Python 3.12 ou mais novo. Da raiz do repositório:
+
+```bash
+# Windows (PowerShell)
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r api/requirements-dev.txt
+
+# macOS e Linux
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r api/requirements-dev.txt
+```
+
+Com o ambiente ativado:
+
+| Para quê | Comando |
+| --- | --- |
+| Subir a API em http://localhost:8000 | `cd api` e depois `python -m uvicorn app.main:app --reload` |
+| Ver e testar as rotas no navegador | abrir http://localhost:8000/docs |
+| Rodar lint, formatação e testes de uma vez | `python scripts/verificar.py` (da raiz) |
+| Regenerar `api/openapi.json` depois de mudar o contrato | `python scripts/exportar_openapi.py` (da raiz) |
+
+Variáveis de ambiente: copie `.env.example` para `.env` quando precisar mudar algo. Sem `.env`, a API usa `MODO_DEMO=true`. Hoje só `/v1/saude` responde de verdade; as outras rotas do contrato respondem "em construção" (`501`).
 
 ## Como usamos IA
 

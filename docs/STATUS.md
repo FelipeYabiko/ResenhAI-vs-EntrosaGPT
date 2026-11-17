@@ -89,3 +89,4 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - 10/11: roteiro de fala do vídeo (`docs/roteiro-video.md`) e proposta de roteiro único junto com o do Kayke (`docs/roteiro-unico-proposta.md`). Três perguntas novas em "Em aberto": marcas, quantidade de vídeos e idioma.
 - 17/11: protótipo do Figma recebido; issues #12 a #26 criadas; decisões D-015 a D-018.
 - 17/11: contrato da API v1 com schemas, OpenAPI e testes de contrato (issue #12); proposta D-019.
+- 17/11: esqueleto da API com servidor local, lint e um comando de verificação (issue #13).
