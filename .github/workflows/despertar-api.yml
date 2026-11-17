@@ -1,0 +1,26 @@
+# Keeps the API on Render's free plan awake (it sleeps after ~15 min without requests).
+# Set the repository variable API_URL (Settings > Secrets and variables > Actions > Variables),
+# e.g. https://credfacil-api.onrender.com. Without it, this workflow does nothing.
+name: Despertar API
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  despertar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Chamar /v1/saude
+        env:
+          API_URL: ${{ vars.API_URL }}
+        run: |
+          if [ -z "$API_URL" ]; then
+            echo "Variavel API_URL nao definida. Nada a fazer."
+            exit 0
+          fi
+          curl --fail --silent --show-error --max-time 90 "$API_URL/v1/saude"

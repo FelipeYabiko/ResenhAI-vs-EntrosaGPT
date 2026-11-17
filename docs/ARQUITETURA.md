@@ -289,9 +289,11 @@ Só guardamos dados públicos de empresa já sanitizados (ver `docs/DADOS.md`). 
 
 Detalhes, limites e resultados dos testes em `docs/DADOS.md`. Regras comuns: hosts fixos, timeout de 1,2 s, cache com TTL, fallback para o último dado em cache marcado como tal, e fixtures para a demo.
 
-## Deploy (proposta)
+## Deploy (D-020)
 
-- Web e API em HTTPS, com deploy automático da `main`.
+Passo a passo em `docs/DEPLOY.md`.
+
+- Site no Netlify (pasta `/web`) e API no Render (pasta `/api`, configurada em `render.yaml`), em HTTPS, com deploy automático da `main`.
 - Variáveis de ambiente no provedor, nunca no repositório. Modelo em `.env.example`.
-- Evitar hospedagem que "dorme": o primeiro acesso lento quebra a demo e o vídeo. Se usar plano gratuito, manter um ping de aquecimento e checar antes de gravar.
+- Evitar hospedagem que "dorme": o primeiro acesso lento quebra a demo e o vídeo. O despertador `.github/workflows/despertar-api.yml` chama `/v1/saude` a cada 10 minutos; mesmo assim, abra a demo antes de gravar e antes da avaliação.
 - Congelar a versão para avaliação e manter o repositório público até 15/12.

@@ -57,7 +57,7 @@ Legenda de tamanho: P (até meio dia), M (1 dia), G (2 dias ou mais).
 | T-33 | Gravação do vídeo, com todos na tela (até 28/11) | Amanda | G | Vídeo de até 3 min, sem login, produto funcionando |
 | T-34 | Conferir a lista de envio e submeter (até 29/11) | Felipe | P | Repositório público, demo no ar, vídeo, README, todos no painel |
 | T-35 | Manter o repositório público e a demo no ar até 15/12 | Felipe | P | Verificação semanal |
-| T-36 | Teste de deploy na Vercel com várias contas (fazer junto com T-07) | Felipe e mais uma pessoa | P | Outra pessoa abre um PR com uma linha; o Felipe faz o merge; o deploy de produção sai. Repetir com um commit de outra conta numa branch e ver se o preview sai. Se bloquear, aplicar o plano B de D-004 |
+| T-36 | Teste de deploy no Netlify e no Render com várias contas (D-020; antes era Vercel) | Felipe e mais uma pessoa | P | Outra pessoa abre um PR com uma linha; depois do merge, site e API publicam sozinhos. `/v1/saude` responde em HTTPS e o site consegue chamar a API (CORS) |
 
 ## Quando surgir tarefa nova
 

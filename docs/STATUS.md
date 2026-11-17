@@ -12,7 +12,7 @@ Legenda: **Decidido** = o time confirmou. **Proposto** = sugestão para confirma
 - Comunicação pelo grupo "Hack BR" no Discord.
 - Trilha: **Pagamentos & finanças**.
 - Ideia: **CredFácil**, aprovada pelo time (informado pelo Felipe em 08/11). Detalhes em `docs/PRODUTO.md`. O documento original (POS-Intel) é a base; este repositório detalha o MVP e marca onde nos afastamos dele.
-- Hospedagem: **Vercel** (informado pelo Felipe em 09/11). Pendente: teste de deploy com várias contas do GitHub (T-36, D-014) e confirmar API em Python, SSE e banco na Vercel.
+- Hospedagem: **site no Netlify e API no Render** (Felipe, 17/11; D-020, substitui a Vercel). Passo a passo em `docs/DEPLOY.md`. Pendente: criar os dois projetos e testar o deploy por outra conta do GitHub (#26).
 - Protótipo da landing feito pela Amanda no Figma (17/11). Tarefas de código abertas como issues #12 a #26.
 - Login e chat do protótipo ficam: "Entrar na demonstração" (Agente ou Matriz) e ajuda com respostas prontas, sem LLM (D-015).
 - Catálogo da demo com marcas fictícias (D-016). Valores da landing vêm do simulador; até ele existir, ficam os do protótipo, marcados como ilustrativos (D-017).
@@ -44,7 +44,7 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 ## Em aberto
 
 - Como o impacto é avaliado na trilha Pagamentos & finanças. O regulamento diz "conforme o que cada trilha define", mas não achei a definição. Perguntar a oi@hackbrasil.com (T-08).
-- Vercel Hobby aceita deploy de commits de outras contas do GitHub? A documentação diz que só o dono dispara deploy. Testar (T-36). Plano B em D-004.
+- Render grátis desliga a API após 15 min sem uso (fonte: fórum do Render, não conferido na página oficial). Conferir se o despertador agendado (`.github/workflows/despertar-api.yml`) mantém a API acordada e se o limite de horas do plano grátis comporta isso (#26).
 - Quem criou ou vai criar o repositório. Ele precisa ser criado do zero (sem fork nem histórico importado) depois de 04/11 às 21h.
 - Licença do projeto (D-010).
 - Séries do Banco Central: confirmar o que são 21083 e 20714 e achar séries mensais atuais. As séries trimestrais por estado que testei só têm dados até 2023 (T-04).
@@ -54,7 +54,7 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - Lista de temas proibidos do FAQ do site, ainda não lida na íntegra.
 - Quem é o agente: de uma credenciadora específica ou de um marketplace multi-provedor (D-012).
 - Concorrentes. Há comparadores de maquininha online (por exemplo, calculadoradetaxas.com.br e simuladores do iDinheiro, vistos em resultados de busca; não abri as páginas) e ferramentas internas de credenciadoras (não pesquisadas). Olhar 3 ou 4 antes de afirmar qualquer diferencial.
-- Propostas e eventos ao vivo na Vercel (#23, 17/11). Hoje ficam na memória de um processo da API. Na Vercel, cada pedido pode cair numa instância diferente, então a proposta criada numa pode não aparecer no fluxo de eventos aberto em outra, e conexões longas têm limite de duração (não conferi o limite atual do plano Hobby). Testar junto com a #26. No deploy, definir `CORS_ORIGENS` com o endereço do site (o padrão só libera `localhost:3000`). Plano B: guardar no Postgres e avisar os ouvintes por ele, ou hospedar a API num serviço com processo contínuo (D-004).
+- No deploy, definir `CORS_ORIGENS` no Render com o endereço do site no Netlify (o padrão só libera `localhost:3000`). Propostas em memória somem quando o Render reinicia ou desliga a API por inatividade; aceitável na demo até existir o banco (#23, #26).
 - CNPJ alfanumérico: a Receita Federal anunciou CNPJ com letras para inscrições novas a partir de julho de 2026 (não conferi a norma nem a regra do dígito). A validação de hoje (#14) aceita só 14 dígitos. Conferir no site da Receita e decidir se a demo precisa aceitar. Como a demo só aceita a lista de CNPJs de demonstração, o impacto é baixo (17/11).
 - Recurso "Taxas de desconto (MDR) e volumetria" do Banco Central: nome do endpoint, campos e periodicidade (T-19).
 - Taxas e faixas do catálogo de demonstração e premissas do simulador: quem define é o Kayke (T-05). São ilustrativas.
@@ -94,3 +94,4 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - 17/11: esqueleto da API com servidor local, lint e um comando de verificação (issue #13).
 - 17/11: validação de CNPJ na API, antes de qualquer outra etapa (issue #14). Pergunta nova: CNPJ alfanumérico.
 - 17/11: propostas e eventos ao vivo na API, com a matriz recebendo a proposta em cerca de 15 ms no teste local (issue #23). Risco novo: eventos ao vivo na Vercel.
+- 17/11: hospedagem trocada para Netlify (site) e Render (API), por causa do deploy por várias contas e do SSE (D-020). Configuração e passo a passo prontos (#26).

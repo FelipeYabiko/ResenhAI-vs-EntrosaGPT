@@ -5,7 +5,7 @@ Proposta do time. Ajuste com o grupo e registre mudanças em `docs/DECISOES.md`.
 ## Branches
 
 - `main` sempre funciona e é publicada. Ninguém faz push direto nela. Ative a proteção da branch no GitHub: exigir pull request e uma aprovação.
-- Deploy na Vercel Hobby (D-014, proposta): só o dono da conta (Felipe) dispara deploy. Os outros trabalham em branch e PR; o Felipe faz o merge. Confira o autor do commit de merge no primeiro teste (T-36). O `git config user.email` de cada pessoa deve ser o e-mail verificado no GitHub.
+- Deploy (D-020): site no Netlify e API no Render, os dois publicam sozinhos a cada merge na `main`. Ninguém precisa ser dono da conta para o deploy sair. O `git config user.email` de cada pessoa deve ser o e-mail verificado no GitHub.
 - Branch por tarefa: `tipo/descricao-curta`, por exemplo `feat/consulta-cnpj`, `fix/validacao-cnpj`, `docs/arquitetura`.
 - Branch viva por no máximo 2 dias. PR pequeno é revisado mais rápido.
 
