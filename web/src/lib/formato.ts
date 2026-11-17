@@ -9,10 +9,15 @@ export function formatarReais(valor: number, { centavos = true } = {}): string {
   return (centavos ? reais : reaisInteiros).format(valor);
 }
 
-/** Reads "10.000", "10000,50" or "R$ 10.000,00" as a number. Returns null when empty or not a number. */
+/**
+ * Reads a Brazilian money value: "10000", "10.000", "10.000,50", "R$ 10.000,00" or "10000.50".
+ * Returns null when empty or ambiguous, so a typo never turns into a different amount.
+ */
 export function lerReais(texto: string): number | null {
-  const limpo = texto.replace(/[^\d,]/g, "").replace(",", ".");
-  if (!limpo) return null;
-  const valor = Number(limpo);
-  return Number.isFinite(valor) ? valor : null;
+  const t = texto.replace(/R\$|\s/g, "");
+  let normal: string | null = null;
+  if (/^\d{1,3}(\.\d{3})+(,\d{1,2})?$/.test(t)) normal = t.replace(/\./g, "").replace(",", "."); // 10.000,50
+  else if (/^\d+(,\d{1,2})?$/.test(t)) normal = t.replace(",", "."); // 10000,50
+  else if (/^\d+\.\d{1,2}$/.test(t)) normal = t; // 10000.50
+  return normal === null ? null : Number(normal);
 }

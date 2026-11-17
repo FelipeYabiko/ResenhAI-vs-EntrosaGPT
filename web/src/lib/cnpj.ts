@@ -1,5 +1,6 @@
 // CNPJ helpers for the form. Same rule as the API (api/app/cnpj.py), so the user
 // gets the error before anything is sent (RF-01). The API checks again.
+// Numeric CNPJ only; alphanumeric CNPJ is an open question in docs/STATUS.md.
 
 const PESOS_PRIMEIRO = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
 const PESOS_SEGUNDO = [6, ...PESOS_PRIMEIRO];

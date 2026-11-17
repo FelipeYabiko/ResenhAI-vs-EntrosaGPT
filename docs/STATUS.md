@@ -55,6 +55,8 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - Quem é o agente: de uma credenciadora específica ou de um marketplace multi-provedor (D-012).
 - Concorrentes. Há comparadores de maquininha online (por exemplo, calculadoradetaxas.com.br e simuladores do iDinheiro, vistos em resultados de busca; não abri as páginas) e ferramentas internas de credenciadoras (não pesquisadas). Olhar 3 ou 4 antes de afirmar qualquer diferencial.
 - No deploy, definir `CORS_ORIGENS` no Render com o endereço do site no Netlify (o padrão só libera `localhost:3000`). Propostas em memória somem quando o Render reinicia ou desliga a API por inatividade; aceitável na demo até existir o banco (#23, #26).
+- Imagens do site (17/11): as maquininhas azuis no fundo laranja e o mascote vêm do Figma da Amanda. Confirmar com ela a origem e a licença de cada imagem. Uma foto de maquininhas brancas do protótipo ficou fora por parecer produto real de marca.
+- Teto do faturamento na consulta (17/11): hoje a API aceita qualquer valor acima de zero. Definir um máximo no contrato (quem define: Kayke, junto com as premissas) e repetir no formulário.
 - CNPJ alfanumérico: a Receita Federal anunciou CNPJ com letras para inscrições novas a partir de julho de 2026 (não conferi a norma nem a regra do dígito). A validação de hoje (#14) aceita só 14 dígitos. Conferir no site da Receita e decidir se a demo precisa aceitar. Como a demo só aceita a lista de CNPJs de demonstração, o impacto é baixo (17/11).
 - Recurso "Taxas de desconto (MDR) e volumetria" do Banco Central: nome do endpoint, campos e periodicidade (T-19).
 - Taxas e faixas do catálogo de demonstração e premissas do simulador: quem define é o Kayke (T-05). São ilustrativas.

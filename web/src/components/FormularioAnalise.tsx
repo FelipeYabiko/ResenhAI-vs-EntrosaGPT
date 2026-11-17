@@ -31,7 +31,9 @@ export function FormularioAnalise() {
     const valor = lerReais(faturamento);
     const novosErros: Erros = {};
     if (!cnpjValido(cnpj)) novosErros.cnpj = "CNPJ inválido. Confira os 14 dígitos.";
-    if (valor === null || valor <= 0) novosErros.faturamento = "Informe o faturamento mensal estimado, em reais.";
+    if (valor === null || valor <= 0) {
+      novosErros.faturamento = "Informe o faturamento mensal estimado em reais, por exemplo 10.000 ou 10.000,50.";
+    }
     setErros(novosErros);
     if (novosErros.cnpj) return campoCnpj.current?.focus();
     if (novosErros.faturamento) return campoFaturamento.current?.focus();
@@ -40,6 +42,18 @@ export function FormularioAnalise() {
     const resposta = await consultar({ cnpj: soDigitos(cnpj), perfil_vendas: { faturamento_mensal: valor! } });
 
     if (resposta.tipo === "ok") return setSituacao({ tipo: "resultado", resultado: resposta.resultado });
+    if (resposta.tipo === "demorou") {
+      return setSituacao({
+        tipo: "aviso",
+        mensagem: "O servidor demorou demais para responder. Ele pode estar ligando; tente de novo em instantes.",
+      });
+    }
+    if (resposta.tipo === "falha_servidor") {
+      return setSituacao({
+        tipo: "aviso",
+        mensagem: "O servidor não respondeu como esperado. Tente de novo em alguns segundos.",
+      });
+    }
     if (resposta.tipo === "sem_conexao") {
       return setSituacao({
         tipo: "aviso",
@@ -103,7 +117,6 @@ export function FormularioAnalise() {
               aria-invalid={erros.faturamento ? true : undefined}
               aria-describedby={erros.faturamento ? `${id}-faturamento-erro` : `${id}-faturamento-dica`}
             />
-            <span className="selo">Simulação</span>
           </div>
           {erros.faturamento ? (
             <p id={`${id}-faturamento-erro`} className={estilos.erro} role="alert">
@@ -122,7 +135,7 @@ export function FormularioAnalise() {
       </div>
 
       <div className={estilos.retorno} role="status" aria-live="polite">
-        {situacao.tipo === "enviando" && <p>Analisando o CNPJ…</p>}
+        {situacao.tipo === "enviando" && <p>Analisando o CNPJ… Na primeira consulta do dia pode levar até um minuto.</p>}
         {situacao.tipo === "aviso" && <p className={estilos.aviso}>{situacao.mensagem}</p>}
         {situacao.tipo === "resultado" && <Resumo resultado={situacao.resultado} />}
       </div>

@@ -157,3 +157,54 @@ test("nova tentativa apaga a resposta anterior", async ({ page }) => {
   await expect(page.locator("form").getByRole("alert")).toHaveText(/CNPJ inválido/);
   await expect(page.getByRole("status")).toBeEmpty();
 });
+
+test("resposta fora do contrato vira falha, nunca 'CNPJ certo'", async ({ page }) => {
+  await page.route(`${API}/v1/consultas`, (rota) =>
+    rota.fulfill({ status: 502, contentType: "text/html", body: "<html>Bad gateway</html>" }),
+  );
+  await page.goto("/");
+  await page.getByLabel("CNPJ").fill("11222333000181");
+  await page.getByLabel("Faturamento mensal estimado").fill("10000");
+  await page.getByRole("button", { name: "Analisar" }).click();
+  await expect(page.getByRole("status")).toContainText("não respondeu como esperado");
+  await expect(page.getByRole("status")).not.toContainText("CNPJ está certo");
+});
+
+test("200 sem corpo válido não quebra a tela", async ({ page }) => {
+  await page.route(`${API}/v1/consultas`, (rota) => rota.fulfill({ status: 200, body: "" }));
+  await page.goto("/");
+  await page.getByLabel("CNPJ").fill("11222333000181");
+  await page.getByLabel("Faturamento mensal estimado").fill("10000");
+  await page.getByRole("button", { name: "Analisar" }).click();
+  await expect(page.getByRole("status")).toContainText("não respondeu como esperado");
+});
+
+for (const [digitado, enviado] of [
+  ["10.000", 10000],
+  ["10.000,50", 10000.5],
+  ["10000,50", 10000.5],
+  ["10000.50", 10000.5],
+  ["R$ 1.500", 1500],
+] as const) {
+  test(`faturamento "${digitado}" é lido como ${enviado}`, async ({ page }) => {
+    const chamadas = await simularApi(page, 501, { erro: { codigo: "nao_implementado", mensagem: "" } });
+    await page.goto("/");
+    await page.getByLabel("CNPJ").fill("11222333000181");
+    await page.getByLabel("Faturamento mensal estimado").fill(digitado);
+    await page.getByRole("button", { name: "Analisar" }).click();
+    await expect(page.getByRole("status")).toContainText("construção");
+    expect(chamadas).toEqual([{ cnpj: "11222333000181", perfil_vendas: { faturamento_mensal: enviado } }]);
+  });
+}
+
+for (const ambiguo of ["10,000.50", "10.00.0", "dez mil"]) {
+  test(`faturamento ambíguo "${ambiguo}" é recusado`, async ({ page }) => {
+    const chamadas = await simularApi(page, 200, {});
+    await page.goto("/");
+    await page.getByLabel("CNPJ").fill("11222333000181");
+    await page.getByLabel("Faturamento mensal estimado").fill(ambiguo);
+    await page.getByRole("button", { name: "Analisar" }).click();
+    await expect(page.locator("form").getByRole("alert")).toHaveText(/Informe o faturamento/);
+    expect(chamadas).toHaveLength(0);
+  });
+}

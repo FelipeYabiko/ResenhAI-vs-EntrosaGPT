@@ -96,7 +96,8 @@
   position: relative;
   display: block;
   width: 100%;
-  animation: flutuar 5s ease-in-out infinite;
+  /* Two 2.4 s floats, then it stops: automatic motion must end within 5 s (WCAG 2.2.2). */
+  animation: flutuar 2.4s ease-in-out 2;
 }
 
 @keyframes flutuar {

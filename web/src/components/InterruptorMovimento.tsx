@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import estilos from "./InterruptorMovimento.module.css";
 
 const CHAVE = "credfacil-movimento";
 const EVENTO = "credfacil-movimento";
@@ -38,12 +39,11 @@ export function InterruptorMovimento() {
   }
 
   return (
-    <label style={{ display: "inline-flex", alignItems: "center", gap: 8, minHeight: 44, fontWeight: 600 }}>
+    <label className={estilos.interruptor}>
       <input
         type="checkbox"
         checked={ligado}
         onChange={(e) => alternar(e.target.checked)}
-        style={{ width: 20, height: 20, accentColor: "var(--cor-marinho)" }}
       />
       Reduzir movimento
     </label>

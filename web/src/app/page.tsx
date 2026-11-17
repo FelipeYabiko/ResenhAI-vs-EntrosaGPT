@@ -43,7 +43,7 @@ export default function Inicio() {
     <>
       <header className={estilos.cabecalho}>
         <div className={`container ${estilos.barra}`}>
-          <a href="#" className={estilos.marca}>
+          <a href="#conteudo" className={estilos.marca}>
             <Image src={mascoteLogo} alt="" width={36} height={42} priority />
             CredFácil
           </a>

@@ -84,18 +84,6 @@ a {
   margin-inline: auto;
 }
 
-.so-leitor {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 .pular-link {
   position: absolute;
   left: 16px;
@@ -144,11 +132,6 @@ a {
 .botao-marinho {
   background: var(--cor-marinho);
   color: var(--cor-creme);
-}
-
-.botao-contorno {
-  background: transparent;
-  color: var(--cor-marinho);
 }
 
 .botao:hover {
