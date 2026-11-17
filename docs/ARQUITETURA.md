@@ -81,6 +81,7 @@ Todo erro usa o mesmo formato, inclusive os de validação:
 | `429` | `limite_de_uso` | Limite de uso da API ou de uma fonte |
 | `501` | `nao_implementado` | Rota prevista no contrato e ainda não implementada |
 | `502` | `fonte_indisponivel` | Fonte fora do ar e sem dado em cache |
+| `503` | `muitas_conexoes` | Já há muitos painéis ouvindo `GET /v1/eventos` (limite da demo: 50) |
 
 ### `POST /v1/consultas`
 
@@ -174,10 +175,10 @@ Os números do exemplo são ilustrativos. `economia` vem `null` quando faltam o 
 | `GET /v1/propostas/{proposta_id}` | Detalhe | `200` com a proposta |
 | `PATCH /v1/propostas/{proposta_id}` | Matriz muda o status | `200` com a proposta |
 | `GET /v1/propostas/{proposta_id}/contrato` | PDF simulado, com marca d'água "SIMULAÇÃO" | `200` `application/pdf`; `409` se não estiver aprovada |
-| `GET /v1/eventos` | Fluxo SSE de eventos | `text/event-stream` |
+| `GET /v1/eventos` | Fluxo SSE de eventos | `text/event-stream`; `503` se já houver painéis demais |
 | `GET /v1/saude` | Verificação de saúde | `200` |
 
-`agente` é o identificador do perfil de demonstração escolhido em "Entrar na demonstração" (D-015), só letras minúsculas, números e `_`. Não há login nem nome de pessoa real. `observacoes` e `pendencias[].descricao` são texto livre: a tela avisa para não escrever dado pessoal (nome, CPF, telefone, e-mail).
+`agente` é o identificador do perfil de demonstração escolhido em "Entrar na demonstração" (D-015), só letras minúsculas, números e `_`. Não há login nem nome de pessoa real. `observacoes` e `pendencias[].descricao` são texto livre e aparecem para qualquer visitante da demo. A tela avisa para não escrever dado pessoal, e a API recusa com `422` o texto que tem e-mail ou 8 dígitos ou mais seguidos (CPF, telefone). `consulta_id` usa só letras minúsculas, números e `_`.
 
 Entrada de `POST /v1/propostas`:
 
@@ -228,7 +229,7 @@ Saída de `GET /v1/saude`:
 
 ### Evento
 
-Cada evento do SSE vai em uma mensagem `event: <tipo>` com o JSON abaixo em `data:`.
+Cada evento do SSE vai em uma mensagem com `id: <id do evento>`, `event: <tipo>` e o JSON abaixo em `data:`. Quem conecta recebe só os eventos novos (o painel carrega a lista com `GET /v1/propostas` antes). Se a conexão cair, o navegador reconecta sozinho mandando o cabeçalho `Last-Event-ID`, e a API reenvia o que ficou para trás. A API manda um comentário de tempo em tempo para a conexão não ser fechada por inatividade.
 
 ```json
 {
@@ -242,6 +243,10 @@ Cada evento do SSE vai em uma mensagem `event: <tipo>` com o JSON abaixo em `dat
 ```
 
 Tipos: `proposta.criada`, `proposta.pendente`, `proposta.aprovada`, `proposta.recusada`. Se `WEBHOOK_MATRIZ_URL` estiver definida, a API também faz `POST` do mesmo evento com a assinatura HMAC no cabeçalho `X-Assinatura`. Isso cumpre o "webhook para o painel" do documento original e mantém o SSE como caminho principal da demo.
+
+Por enquanto, consultas, propostas e eventos ficam na memória da API (`api/app/memoria.py`) e somem quando ela reinicia. O Postgres entra no lugar quando o banco for criado. Como a demo é pública e sem login, a memória tem limites: 1000 consultas e 1000 propostas (as mais antigas saem), 1000 eventos para reenvio, 50 painéis conectados e 100 eventos não lidos por painel (um painel lento perde os mais antigos e recarrega a lista).
+
+O site chama a API de outro endereço. Só as origens de `CORS_ORIGENS` (`.env.example`) podem chamá-la.
 
 ## Modelo de dados (proposta)
 

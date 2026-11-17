@@ -54,6 +54,7 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - Lista de temas proibidos do FAQ do site, ainda não lida na íntegra.
 - Quem é o agente: de uma credenciadora específica ou de um marketplace multi-provedor (D-012).
 - Concorrentes. Há comparadores de maquininha online (por exemplo, calculadoradetaxas.com.br e simuladores do iDinheiro, vistos em resultados de busca; não abri as páginas) e ferramentas internas de credenciadoras (não pesquisadas). Olhar 3 ou 4 antes de afirmar qualquer diferencial.
+- Propostas e eventos ao vivo na Vercel (#23, 17/11). Hoje ficam na memória de um processo da API. Na Vercel, cada pedido pode cair numa instância diferente, então a proposta criada numa pode não aparecer no fluxo de eventos aberto em outra, e conexões longas têm limite de duração (não conferi o limite atual do plano Hobby). Testar junto com a #26. No deploy, definir `CORS_ORIGENS` com o endereço do site (o padrão só libera `localhost:3000`). Plano B: guardar no Postgres e avisar os ouvintes por ele, ou hospedar a API num serviço com processo contínuo (D-004).
 - CNPJ alfanumérico: a Receita Federal anunciou CNPJ com letras para inscrições novas a partir de julho de 2026 (não conferi a norma nem a regra do dígito). A validação de hoje (#14) aceita só 14 dígitos. Conferir no site da Receita e decidir se a demo precisa aceitar. Como a demo só aceita a lista de CNPJs de demonstração, o impacto é baixo (17/11).
 - Recurso "Taxas de desconto (MDR) e volumetria" do Banco Central: nome do endpoint, campos e periodicidade (T-19).
 - Taxas e faixas do catálogo de demonstração e premissas do simulador: quem define é o Kayke (T-05). São ilustrativas.
@@ -92,3 +93,4 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - 17/11: contrato da API v1 com schemas, OpenAPI e testes de contrato (issue #12); proposta D-019.
 - 17/11: esqueleto da API com servidor local, lint e um comando de verificação (issue #13).
 - 17/11: validação de CNPJ na API, antes de qualquer outra etapa (issue #14). Pergunta nova: CNPJ alfanumérico.
+- 17/11: propostas e eventos ao vivo na API, com a matriz recebendo a proposta em cerca de 15 ms no teste local (issue #23). Risco novo: eventos ao vivo na Vercel.

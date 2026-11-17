@@ -4,10 +4,11 @@ Source of truth for the OpenAPI in api/openapi.json. Every example here must
 match the JSON examples in docs/ARQUITETURA.md (checked by tests/test_contrato.py).
 """
 
+import re
 from datetime import date, datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
 
 AVISO_SIMULACAO = "Simulação. Não é oferta de crédito."
 
@@ -25,6 +26,21 @@ def _exemplo(dados: dict) -> ConfigDict:
     return ConfigDict(extra="forbid", json_schema_extra={"examples": [dados]})
 
 
+_EMAIL = re.compile(r"\S+@\S+\.\S+")
+_MUITOS_DIGITOS = re.compile(r"\d(?:[\s.\-()/]*\d){7,}")  # 8+ digits, even with separators: CPF, phone
+
+
+def _sem_dado_pessoal(texto: str) -> str:
+    """Free text is public in the demo (no login): refuse what looks like an e-mail, CPF or phone."""
+    if _EMAIL.search(texto) or _MUITOS_DIGITOS.search(texto):
+        raise ValueError("Não escreva dados pessoais (CPF, telefone, e-mail) neste campo.")
+    return texto
+
+
+TextoLivre = Annotated[str, AfterValidator(_sem_dado_pessoal)]
+IdCurto = Annotated[str, Field(pattern=r"^[a-z0-9_]{1,40}$")]
+
+
 # --- Errors ---
 
 
@@ -36,6 +52,7 @@ class ErroDetalhe(Modelo):
         "cnpj_invalido",
         "cnpj_fora_da_demo",
         "limite_de_uso",
+        "muitas_conexoes",
         "nao_implementado",
         "fonte_indisponivel",
     ]
@@ -237,18 +254,22 @@ class PropostaEntrada(Modelo):
     model_config = _exemplo(
         {"consulta_id": "c_01", "agente": "agente_demo", "observacoes": "Comerciante prefere receber em D+1."}
     )
-    consulta_id: str
+    consulta_id: IdCurto
     agente: str = Field(
         pattern=r"^[a-z0-9_]{1,40}$",
         description="Demo profile id chosen in 'Entrar na demonstração', e.g. agente_demo. Never a real name.",
     )
-    observacoes: str | None = Field(
-        default=None, max_length=500, description="Free text about the sale. Must not contain personal data."
+    observacoes: TextoLivre | None = Field(
+        default=None,
+        max_length=500,
+        description="Free text about the sale. Text that looks like personal data is refused.",
     )
 
 
 class PendenciaEntrada(Modelo):
-    descricao: str = Field(min_length=1, max_length=500, description="Must not contain personal data.")
+    descricao: TextoLivre = Field(
+        min_length=1, max_length=500, description="Text that looks like personal data is refused."
+    )
 
 
 class Pendencia(PendenciaEntrada):
