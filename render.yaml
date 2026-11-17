@@ -1,0 +1,20 @@
+# API on Render (D-020). Render reads this file when you create a "Blueprint"
+# from this repository. Step by step: docs/DEPLOY.md.
+services:
+  - type: web
+    name: credfacil-api
+    runtime: python
+    plan: free
+    rootDir: api
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /v1/saude
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: MODO_DEMO
+        value: "true"
+      # Address of the site on Netlify, e.g. https://credfacil.netlify.app (asked when the Blueprint is created).
+      - key: CORS_ORIGENS
+        sync: false

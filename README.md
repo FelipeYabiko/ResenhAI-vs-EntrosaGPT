@@ -26,6 +26,7 @@ Vendedores de campo que oferecem maquininhas e crédito a pequenos comerciantes 
 - API em FastAPI e web em Next.js. Banco Postgres.
 - A pontuação é função pura, sem rede e sem LLM, com testes para cada regra. As premissas são do time e não têm validação estatística.
 - Eventos em tempo real por Server-Sent Events.
+- Site no Netlify e API no Render, com deploy automático da `main` (ver [`docs/DEPLOY.md`](docs/DEPLOY.md)).
 - Acessibilidade WCAG 2.1 AA: rótulos, leitor de tela, alto contraste e entrada por voz com conferência.
 
 Detalhes em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) e [`docs/PRODUTO.md`](docs/PRODUTO.md).
