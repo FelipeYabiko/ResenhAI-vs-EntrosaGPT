@@ -1,0 +1,191 @@
+/*
+ * Design tokens from Amanda's Figma prototype (Outfit 400/600/800).
+ * Contrast ratios (WCAG 2.1) checked for every text/background pair we use:
+ *   marinho on creme 8.74 · marinho on celeste 6.33 · creme on marinho 8.74
+ *   marinho-escuro on laranja 5.56 (marinho is only 4.40 there, so it is not used for text on orange)
+ *   laranja-texto on creme 6.27 and on celeste 4.54 (plain laranja is 1.99 / 1.44: background only)
+ *   limao on marinho 6.75 (limao on laranja is 1.53: never used)
+ * Orange buttons on creme are 1.99:1, so they always carry a marinho border (8.74:1) as their edge.
+ */
+:root {
+  --cor-creme: #f7f3e6;
+  --cor-marinho: #303a95;
+  --cor-marinho-escuro: #232c7a;
+  --cor-celeste: #a9d7f3;
+  --cor-laranja: #f8982e;
+  --cor-laranja-texto: #8f4500;
+  --cor-limao: #d8e022;
+  --cor-branco: #ffffff;
+
+  --fonte: "Outfit", system-ui, sans-serif;
+  --raio: 16px;
+  --raio-pilula: 999px;
+  --largura-max: 1120px;
+  --sombra-botao: 0 4px 0 var(--cor-marinho);
+  --transicao: 150ms ease;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--cor-creme);
+  color: var(--cor-marinho);
+  font-family: var(--fonte);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.12;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+/* Visible focus everywhere (WCAG 2.4.7). On dark sections the ring switches to lime. */
+:focus-visible {
+  outline: 3px solid var(--cor-marinho);
+  outline-offset: 3px;
+}
+
+.fundo-escuro :focus-visible {
+  outline-color: var(--cor-limao);
+}
+
+.container {
+  width: min(100% - 32px, var(--largura-max));
+  margin-inline: auto;
+}
+
+.pular-link {
+  position: absolute;
+  left: 16px;
+  top: -100px;
+  z-index: 10;
+  padding: 12px 16px;
+  background: var(--cor-marinho);
+  color: var(--cor-creme);
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.pular-link:focus {
+  top: 16px;
+}
+
+.sobretitulo {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Buttons and button-like links. Min 44x44 px targets (field use, one hand). */
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 24px;
+  border: 2px solid var(--cor-marinho);
+  border-radius: var(--raio-pilula);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--transicao), box-shadow var(--transicao);
+}
+
+.botao-laranja {
+  background: var(--cor-laranja);
+  color: var(--cor-marinho-escuro);
+  box-shadow: var(--sombra-botao);
+}
+
+.botao-marinho {
+  background: var(--cor-marinho);
+  color: var(--cor-creme);
+}
+
+.botao:hover {
+  transform: translateY(-1px);
+}
+
+.botao-laranja:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--cor-marinho);
+}
+
+.botao[disabled] {
+  cursor: progress;
+  opacity: 0.8;
+}
+
+/* "Simulação" seal: always text, never only an icon or a color. */
+.selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border: 1.5px solid var(--cor-marinho);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-celeste);
+  color: var(--cor-marinho);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Reduce motion: the OS setting or the switch on the page (data attribute on <html>). */
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-movimento="normal"]) *,
+  html:not([data-movimento="normal"]) *::before,
+  html:not([data-movimento="normal"]) *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html[data-movimento="reduzido"] *,
+html[data-movimento="reduzido"] *::before,
+html[data-movimento="reduzido"] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+/* Windows high contrast and other forced-color modes: keep edges visible. */
+@media (forced-colors: active) {
+  .botao,
+  .selo {
+    border-color: ButtonText;
+  }
+}

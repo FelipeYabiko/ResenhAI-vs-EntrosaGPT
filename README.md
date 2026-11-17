@@ -38,7 +38,9 @@ Detalhes em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) e [`docs/PRODUTO.md`](d
 
 ## Como rodar
 
-A web (Next.js) ainda está em construção. A API já roda.
+O projeto tem duas partes: a API (Python, pasta `api/`) e o site (Next.js, pasta `web/`).
+
+### API
 
 Precisa de Python 3.12 ou mais novo. Da raiz do repositório:
 
@@ -70,6 +72,27 @@ Com o ambiente ativado, sempre a partir da raiz do repositório:
 Hoje só `/v1/saude` responde de verdade. As outras rotas do contrato respondem "em construção" (`501`).
 
 Configuração: por enquanto a API só usa `MODO_DEMO` (padrão `true`) e lê do ambiente, não do arquivo `.env`. Para mudar, defina antes de subir a API: `$env:MODO_DEMO="false"` no PowerShell ou `export MODO_DEMO=false` no macOS e Linux. As outras variáveis de `.env.example` entram quando as fontes e o banco forem ligados.
+
+### Site
+
+Precisa de Node.js 22. Em outro terminal, a partir da raiz:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+Abra http://localhost:3000. O site chama a API em `http://localhost:8000`; para outro endereço, copie `web/.env.example` para `web/.env.local` e ajuste `NEXT_PUBLIC_API_URL`.
+
+| Para quê | Comando (dentro de `web/`) |
+| --- | --- |
+| Conferir o código (lint, inclui regras de acessibilidade) | `npm run lint` |
+| Gerar a versão de produção | `npm run build` |
+| Testes no navegador, com axe (rode o build antes) | `npm run e2e` |
+| Atualizar os tipos da API depois de mudar o contrato | `npm run tipos` |
+
+Os testes no navegador usam o Playwright. Na primeira vez, instale o navegador com `npx playwright install chromium`.
 
 ## Como usamos IA
 

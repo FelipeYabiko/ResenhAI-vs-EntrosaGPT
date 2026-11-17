@@ -1,0 +1,12 @@
+# Netlify settings for the site (base directory: web). See docs/DEPLOY.md.
+
+# Basic security headers. The CSP below only blocks framing, plugins and <base> changes;
+# a full CSP (script and connect sources) can come later, tested on a deploy preview first.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "camera=(), geolocation=(), microphone=(self)"
+    Content-Security-Policy = "frame-ancestors 'none'; object-src 'none'; base-uri 'self'"

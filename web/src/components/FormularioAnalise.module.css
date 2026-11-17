@@ -1,0 +1,111 @@
+.formulario {
+  display: grid;
+  gap: 16px;
+}
+
+.demo {
+  font-size: 0.9375rem;
+}
+
+.campos {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (min-width: 860px) {
+  .campos {
+    grid-template-columns: 1fr 1fr auto;
+  }
+
+  .enviar {
+    margin-top: 30px;
+  }
+}
+
+.campo {
+  display: grid;
+  gap: 6px;
+}
+
+.campo label {
+  font-weight: 600;
+}
+
+.campo input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 2px solid var(--cor-marinho);
+  border-radius: 12px;
+  background: var(--cor-creme);
+  color: var(--cor-marinho);
+  font: inherit;
+}
+
+.campo input[aria-invalid="true"] {
+  border-width: 3px;
+  border-style: dashed;
+}
+
+.comPrefixo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comPrefixo > span[aria-hidden] {
+  position: absolute;
+  left: 14px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.comPrefixo input {
+  padding-left: 44px;
+}
+
+.dica {
+  font-size: 0.875rem;
+}
+
+.erro {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.erro::before {
+  content: "⚠ ";
+}
+
+.retorno {
+  padding: 16px;
+  border: 2px solid var(--cor-marinho);
+  border-radius: 12px;
+  background: var(--cor-creme);
+}
+
+/* Empty: invisible but kept in the page, so screen readers announce what appears in it later. */
+.retorno:empty {
+  padding: 0;
+  border: 0;
+}
+
+.aviso {
+  font-weight: 600;
+}
+
+.resumo {
+  display: grid;
+  gap: 8px;
+}
+
+.resumo h3 {
+  font-size: 1.25rem;
+}
+
+.resumo ul {
+  margin: 0;
+  padding-left: 20px;
+}
