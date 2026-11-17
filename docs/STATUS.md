@@ -31,6 +31,7 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 | Simulador de economia | Do RFC "Comparador de Maquininhas": custo atual contra custo com a oferta, economia em reais por mês e por ano, custo de saída e referência do Banco Central. Afiliados e comparação por marca ficam fora (D-011, D-013) |
 | Privacidade | Modo demo com lista de CNPJs e sanitização (D-005) |
 | Stack | Next.js + TypeScript, FastAPI, Postgres, Server-Sent Events (ver `docs/ARQUITETURA.md`) |
+| Contrato da API v1 | Escrito em `docs/ARQUITETURA.md` e em `api/openapi.json` (issue #12). A consulta só exige CNPJ e faturamento; sem mix ou taxas atuais, não há economia (D-019). Aguarda aprovação de Felipe, Guilherme e Kayke |
 | Pastas | Monorepo com `/web` e `/api`. Sem `/ml` |
 | Papéis | Felipe: API, fontes, integrações e deploy. Kayke: pontuação, dados fictícios. Guilherme: web (agente e matriz). Amanda: UX, acessibilidade, vídeo e README |
 | Organização do código | Contrato da API definido primeiro, `main` sempre funcionando com deploy automático, PR com revisão (ver `docs/PROCESSO.md`) |
@@ -87,3 +88,4 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - 10/11: suporte a Gemini CLI (`GEMINI.md`, seção em `docs/IA.md`).
 - 10/11: roteiro de fala do vídeo (`docs/roteiro-video.md`) e proposta de roteiro único junto com o do Kayke (`docs/roteiro-unico-proposta.md`). Três perguntas novas em "Em aberto": marcas, quantidade de vídeos e idioma.
 - 17/11: protótipo do Figma recebido; issues #12 a #26 criadas; decisões D-015 a D-018.
+- 17/11: contrato da API v1 com schemas, OpenAPI e testes de contrato (issue #12); proposta D-019.
