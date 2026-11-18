@@ -35,6 +35,7 @@ def test_origem_bate_com_os_dados(cnpj):
 def test_ficticio_se_apresenta_como_ficticio(cnpj):
     # On screen and in the video, nobody should take these for real merchants.
     assert "(FICTÍCIO)" in carregar_fixture(cnpj).empresa.nome
+    assert "(fictício)" in DEMO[cnpj].apelido
 
 
 @pytest.mark.parametrize("cnpj", sorted(c for c, item in DEMO.items() if item.origem == "real_empresa_grande"))

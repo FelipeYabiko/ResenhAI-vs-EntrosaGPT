@@ -105,7 +105,8 @@ def existe_na_fonte(cnpj: str, tempo_limite_s: float = 10) -> bool:
     try:
         baixar(cnpj, tempo_limite_s)
     except urllib.error.HTTPError as erro:
-        if erro.code == 404:
+        # Only a 404 from the source itself means "not found" (not one from a redirect target or a proxy).
+        if erro.code == 404 and erro.geturl().startswith(URL_FONTE):
             return False
         raise
     return True

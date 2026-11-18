@@ -27,21 +27,21 @@
     },
     {
       "cnpj": "98765432000198",
-      "apelido": "Mercadinho Boa Vista",
+      "apelido": "Mercadinho Boa Vista (fictício)",
       "origem": "ficticio",
       "perfil": "mercadinho",
       "conferido_em": "2026-11-18"
     },
     {
       "cnpj": "98765433000132",
-      "apelido": "Salão Beleza Pura",
+      "apelido": "Salão Beleza Pura (fictício)",
       "origem": "ficticio",
       "perfil": "salao",
       "conferido_em": "2026-11-18"
     },
     {
       "cnpj": "98765434000187",
-      "apelido": "Casa Do Construtor Central",
+      "apelido": "Depósito Material Central (fictício)",
       "origem": "ficticio",
       "perfil": "loja_construcao",
       "conferido_em": "2026-11-18"
