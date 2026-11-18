@@ -37,7 +37,38 @@ Detalhes em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) e [`docs/PRODUTO.md`](d
 
 ## Como rodar
 
-Em construção. As instruções de instalação, variáveis de ambiente (`.env.example`) e testes entram aqui assim que o primeiro fluxo funcionar.
+A web (Next.js) ainda está em construção. A API já roda.
+
+Precisa de Python 3.12 ou mais novo. Da raiz do repositório:
+
+```powershell
+# Windows (PowerShell). Se "python" não for reconhecido, troque por "py".
+python -m venv .venv
+# Só na primeira vez, se o PowerShell disser que a execução de scripts está desabilitada:
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+.venv\Scripts\Activate.ps1
+pip install -r api/requirements-dev.txt
+```
+
+```bash
+# macOS e Linux
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r api/requirements-dev.txt
+```
+
+Com o ambiente ativado, sempre a partir da raiz do repositório:
+
+| Para quê | Comando |
+| --- | --- |
+| Subir a API em http://localhost:8000 | `cd api; python -m uvicorn app.main:app --reload` |
+| Ver e testar as rotas no navegador | abrir http://localhost:8000/docs |
+| Rodar lint, formatação e testes de uma vez | `python scripts/verificar.py` |
+| Regenerar `api/openapi.json` depois de mudar o contrato | `python scripts/exportar_openapi.py` |
+
+Hoje só `/v1/saude` responde de verdade. As outras rotas do contrato respondem "em construção" (`501`).
+
+Configuração: por enquanto a API só usa `MODO_DEMO` (padrão `true`) e lê do ambiente, não do arquivo `.env`. Para mudar, defina antes de subir a API: `$env:MODO_DEMO="false"` no PowerShell ou `export MODO_DEMO=false` no macOS e Linux. As outras variáveis de `.env.example` entram quando as fontes e o banco forem ligados.
 
 ## Como usamos IA
 
