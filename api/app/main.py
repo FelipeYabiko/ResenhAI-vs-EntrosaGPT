@@ -18,6 +18,7 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 
 from app.cnpj import cnpj_valido
+from app.contrato_pdf import gerar_contrato_pdf
 from app.memoria import memoria
 from app.schemas import (
     AVISO_SIMULACAO,
@@ -210,11 +211,20 @@ async def atualizar_proposta(proposta_id: str, entrada: PropostaAtualizacao) -> 
 @app.get(
     "/v1/propostas/{proposta_id}/contrato",
     response_class=Response,
-    responses={200: {"content": {"application/pdf": {}}}, **_erros(404, 409, 422, 501)},
+    responses={200: {"content": {"application/pdf": {}}}, **_erros(404, 409, 422)},
     tags=["propostas"],
 )
-def contrato_simulado(proposta_id: str) -> Response:
-    raise _nao_implementado()  # built in issue #24
+async def contrato_simulado(proposta_id: str) -> Response:
+    # RF-09: only an approved proposal has a (simulated) contract. A one-page PDF takes ~10 ms, so it
+    # runs on the event loop like the other proposal routes (no thread, no lock needed).
+    proposta = _proposta_ou_404(proposta_id)
+    if proposta.status != "aprovada":
+        raise ErroApi(409, "transicao_invalida", "O contrato simulado só existe depois que a proposta é aprovada.")
+    return Response(
+        content=gerar_contrato_pdf(proposta),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="contrato-simulado-{proposta_id}.pdf"'},
+    )
 
 
 async def _vaga_para_ouvinte() -> None:

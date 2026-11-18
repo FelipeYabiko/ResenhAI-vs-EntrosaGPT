@@ -174,7 +174,7 @@ Os números do exemplo são ilustrativos. `economia` vem `null` quando faltam o 
 | `GET /v1/propostas?status=enviada` | Matriz lista propostas (filtro opcional por `status`) | `200` com `{"propostas": [...]}` |
 | `GET /v1/propostas/{proposta_id}` | Detalhe | `200` com a proposta |
 | `PATCH /v1/propostas/{proposta_id}` | Matriz muda o status | `200` com a proposta |
-| `GET /v1/propostas/{proposta_id}/contrato` | PDF simulado, com marca d'água "SIMULAÇÃO" | `200` `application/pdf`; `409` se não estiver aprovada |
+| `GET /v1/propostas/{proposta_id}/contrato` | PDF simulado (gerado com `fpdf2`), com marca d'água "SIMULAÇÃO" em todas as páginas e o aviso de simulação. Traz só o que a proposta já tem: número, data, perfil do vendedor, CNPJ e nome (ou "não exibido"), faixa, limite simulado, economia (se houver) e pendências | `200` `application/pdf` para baixar (`contrato-simulado-<id>.pdf`); `409 transicao_invalida` se não estiver aprovada |
 | `GET /v1/eventos` | Fluxo SSE de eventos | `text/event-stream`; `503` se já houver painéis demais |
 | `GET /v1/saude` | Verificação de saúde | `200` |
 
