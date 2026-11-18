@@ -27,6 +27,7 @@ from app.schemas import (
     Erro,
     Evento,
     ListaPropostas,
+    Pendencia,
     Proposta,
     PropostaAtualizacao,
     PropostaEntrada,
@@ -149,11 +150,16 @@ async def criar_proposta(entrada: PropostaEntrada) -> Proposta:
         aviso=AVISO_SIMULACAO,
     )
     memoria.propostas[proposta.proposta_id] = proposta
+    _publicar(proposta, "proposta.criada", agora)
+    return proposta
+
+
+def _publicar(proposta: Proposta, tipo: str, quando: datetime) -> None:
     memoria.eventos.publicar(
         Evento(
             id=f"e_{uuid4().hex[:12]}",
-            tipo="proposta.criada",
-            ocorrido_em=agora,
+            tipo=tipo,
+            ocorrido_em=quando,
             proposta_id=proposta.proposta_id,
             dados=DadosEvento(
                 faixa=proposta.resumo.faixa, limite_credito_simulado=proposta.resumo.limite_credito_simulado
@@ -161,7 +167,6 @@ async def criar_proposta(entrada: PropostaEntrada) -> Proposta:
             aviso=AVISO_SIMULACAO,
         )
     )
-    return proposta
 
 
 @app.get("/v1/propostas", response_model=ListaPropostas, responses=_erros(422), tags=["propostas"])
@@ -183,11 +188,23 @@ async def obter_proposta(proposta_id: str) -> Proposta:
 @app.patch(
     "/v1/propostas/{proposta_id}",
     response_model=Proposta,
-    responses=_erros(404, 409, 422, 501),
+    responses=_erros(404, 409, 422),
     tags=["propostas"],
 )
-def atualizar_proposta(proposta_id: str, entrada: PropostaAtualizacao) -> Proposta:
-    raise _nao_implementado()  # built in issue #24
+async def atualizar_proposta(proposta_id: str, entrada: PropostaAtualizacao) -> Proposta:
+    # Back office decision (RF-07, RF-08); aprovada and recusada are final.
+    # Keep no await between reading the status and saving: that is what makes two decisions safe.
+    proposta = _proposta_ou_404(proposta_id)
+    if proposta.status not in ("enviada", "pendente"):
+        raise ErroApi(409, "transicao_invalida", f"A proposta já foi {proposta.status} e não pode mudar.")
+    agora = _agora()
+    novas = [Pendencia(descricao=p.descricao, criada_em=agora) for p in entrada.pendencias]
+    proposta = proposta.model_copy(
+        update={"status": entrada.status, "pendencias": [*proposta.pendencias, *novas], "atualizada_em": agora}
+    )
+    memoria.propostas[proposta_id] = proposta
+    _publicar(proposta, f"proposta.{entrada.status}", agora)
+    return proposta
 
 
 @app.get(
@@ -221,8 +238,8 @@ async def _vaga_para_ouvinte() -> None:
 async def eventos(
     last_event_id: str | None = Header(default=None), _: None = Depends(_vaga_para_ouvinte)
 ) -> AsyncIterable[ServerSentEvent]:
-    """Live proposal events for the back-office panel. New listeners get only new events;
-    a browser that reconnects sends Last-Event-ID and gets what it missed."""
+    # Live proposal events for the back-office panel. New listeners get only new events;
+    # a browser that reconnects sends Last-Event-ID and gets what it missed.
     if last_event_id is not None and not ID_EVENTO.fullmatch(last_event_id):
         last_event_id = None  # not one of our ids: treat as a new listener
     async for evento in memoria.eventos.assinar(depois_de=last_event_id):

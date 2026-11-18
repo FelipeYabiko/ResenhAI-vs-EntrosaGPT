@@ -99,3 +99,4 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - 17/11: hospedagem trocada para Netlify (site) e Render (API), por causa do deploy por várias contas e do SSE (D-020). Configuração e passo a passo prontos (#26).
 - 17/11: pasta `web/` criada (combinado com o Guilherme): Next.js, cores e fonte do Figma com contraste conferido, landing e formulário ligado à API. Testes no navegador com axe sem violações.
 - 18/11: parte de dados da consulta (#16): limpeza da resposta da fonte de CNPJ e dados de demonstração gerados a partir dela. Ambiente da sessão liberado para `open.cnpja.com`.
+- 18/11: API das decisões da matriz (pendência, aprovação, recusa), cada uma publicada como evento em tempo real (SSE); contrato em PDF fica para o próximo passo.
