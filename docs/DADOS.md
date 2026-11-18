@@ -32,6 +32,21 @@ Regulamento 6.9: a demo não pode expor dados pessoais reais de terceiros. Em fi
 - Campos úteis na resposta: `company.name`, `company.equity` (capital social), `company.size`, `company.simples`, `company.simei`, `founded`, `status`, `mainActivity`, `address`.
 - A resposta também traz `company.members` (sócios), `emails` e `phones`. **Descartar na entrada**, antes de guardar ou logar.
 - Por causa do limite, a demo usa cache e fixtures. Mostre a consulta ao vivo no máximo uma vez, com um CNPJ já aquecido.
+- Teste de 18/11/2026 (CNPJ 00000000000191): a resposta trouxe 45 sócios (nome, CPF mascarado, faixa de idade), 1 e-mail, 1 telefone e o endereço completo. Por isso a limpeza acontece logo na entrada, em `api/fontes/cnpj_publico.py` (`sanitizar`), que copia só estes campos:
+
+| Campo no contrato | Campo da fonte | Observação |
+| --- | --- | --- |
+| `cnpj` | `taxId` | |
+| `nome` | `company.name` | `null` se `company.simei.optant` for verdadeiro ou se `company.nature.text` tiver "individual" ou "unipessoal" (a razão social costuma trazer o nome da pessoa) |
+| `situacao` | `status.text` | em maiúsculas, ex.: `ATIVA` |
+| `cnae_principal` | `mainActivity.id` | formatado: 6422100 vira `6422-1/00` |
+| `porte` | `company.size.acronym` | ex.: `ME`, `EPP`, `DEMAIS` |
+| `abertura` | `founded` | |
+| `capital_social` | `company.equity` | |
+| `municipio_uf` | `address.city` + `address.state` | só cidade e UF, nunca o endereço |
+| `fontes[].atualizado_em` | `updated` | data em que a fonte atualizou o cadastro |
+
+- Para gerar os dados de um CNPJ da demo: `python scripts/gerar_fixture_empresa.py <cnpj>`. O arquivo vai para `fixtures/respostas_fontes/<cnpj>.json`, já sem dado pessoal. Um teste confere que esses arquivos só têm os campos permitidos.
 
 ### Banco Central (SGS)
 

@@ -1,0 +1,14 @@
+{
+  "fonte": "cnpj_publico",
+  "atualizado_em": "2026-11-17",
+  "empresa": {
+    "cnpj": "00000000000191",
+    "nome": "BANCO DO BRASIL SA",
+    "situacao": "ATIVA",
+    "cnae_principal": "6422-1/00",
+    "porte": "DEMAIS",
+    "abertura": "1966-08-01",
+    "capital_social": 120000000000.0,
+    "municipio_uf": "Brasília/DF"
+  }
+}
