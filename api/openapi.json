@@ -1,0 +1,1588 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CredFácil API",
+    "description": "Simulação. Não é oferta de crédito. Todo limite, taxa e aprovação é simulado.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/v1/saude": {
+      "get": {
+        "tags": [
+          "saude"
+        ],
+        "summary": "Saude",
+        "operationId": "saude_v1_saude_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Saude"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/consultas": {
+      "post": {
+        "tags": [
+          "consultas"
+        ],
+        "summary": "Criar Consulta",
+        "operationId": "criar_consulta_v1_consultas_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsultaEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultaResultado"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Not Implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/propostas": {
+      "post": {
+        "tags": [
+          "propostas"
+        ],
+        "summary": "Criar Proposta",
+        "operationId": "criar_proposta_v1_propostas_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PropostaEntrada"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposta"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "propostas"
+        ],
+        "summary": "Listar Propostas",
+        "operationId": "listar_propostas_v1_propostas_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "enviada",
+                    "pendente",
+                    "aprovada",
+                    "recusada"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaPropostas"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          }
+        }
+      }
+    },
+    "/v1/propostas/{proposta_id}": {
+      "get": {
+        "tags": [
+          "propostas"
+        ],
+        "summary": "Obter Proposta",
+        "operationId": "obter_proposta_v1_propostas__proposta_id__get",
+        "parameters": [
+          {
+            "name": "proposta_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Proposta Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposta"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "propostas"
+        ],
+        "summary": "Atualizar Proposta",
+        "operationId": "atualizar_proposta_v1_propostas__proposta_id__patch",
+        "parameters": [
+          {
+            "name": "proposta_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Proposta Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PropostaAtualizacao"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposta"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          }
+        }
+      }
+    },
+    "/v1/propostas/{proposta_id}/contrato": {
+      "get": {
+        "tags": [
+          "propostas"
+        ],
+        "summary": "Contrato Simulado",
+        "operationId": "contrato_simulado_v1_propostas__proposta_id__contrato_get",
+        "parameters": [
+          {
+            "name": "proposta_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Proposta Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          }
+        }
+      }
+    },
+    "/v1/eventos": {
+      "get": {
+        "tags": [
+          "eventos"
+        ],
+        "summary": "Eventos",
+        "operationId": "eventos_v1_eventos_get",
+        "responses": {
+          "200": {
+            "description": "Server-Sent Events. Each message: `event: <tipo>` and the Evento JSON in `data:`.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/Evento"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Not Implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BenchmarkMercado": {
+        "properties": {
+          "disponivel": {
+            "type": "boolean",
+            "title": "Disponivel"
+          },
+          "referencia": {
+            "type": "string",
+            "title": "Referencia"
+          },
+          "data_referencia": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Referencia"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "disponivel",
+          "referencia",
+          "data_referencia"
+        ],
+        "title": "BenchmarkMercado"
+      },
+      "ConsultaEntrada": {
+        "properties": {
+          "cnpj": {
+            "type": "string",
+            "pattern": "^\\d{14}$",
+            "title": "Cnpj",
+            "description": "Only the 14 digits, no mask."
+          },
+          "perfil_vendas": {
+            "$ref": "#/components/schemas/PerfilVendas"
+          },
+          "situacao_atual": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SituacaoAtual"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "cnpj",
+          "perfil_vendas"
+        ],
+        "title": "ConsultaEntrada",
+        "examples": [
+          {
+            "cnpj": "00000000000191",
+            "perfil_vendas": {
+              "faturamento_mensal": 15000.0,
+              "mix": {
+                "credito_a_vista": 40,
+                "credito_parcelado": 0,
+                "debito": 40,
+                "pix": 20
+              },
+              "parcelas_medias": 1,
+              "prazo_recebimento": "D+1",
+              "ticket_medio": 60.0
+            },
+            "situacao_atual": {
+              "custo_maquina_mensal": 0.0,
+              "custo_saida": 0.0,
+              "taxas": {
+                "credito_a_vista": 4.98,
+                "debito": 1.99,
+                "pix": 0.0
+              }
+            }
+          }
+        ]
+      },
+      "ConsultaResultado": {
+        "properties": {
+          "consulta_id": {
+            "type": "string",
+            "title": "Consulta Id"
+          },
+          "empresa": {
+            "$ref": "#/components/schemas/Empresa"
+          },
+          "fontes": {
+            "items": {
+              "$ref": "#/components/schemas/Fonte"
+            },
+            "type": "array",
+            "title": "Fontes"
+          },
+          "pontuacao": {
+            "$ref": "#/components/schemas/Pontuacao"
+          },
+          "recomendacao": {
+            "$ref": "#/components/schemas/Recomendacao"
+          },
+          "economia": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Economia"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null when mix or current rates are missing."
+          },
+          "benchmark_mercado": {
+            "$ref": "#/components/schemas/BenchmarkMercado"
+          },
+          "tempo_ms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Tempo Ms"
+          },
+          "aviso": {
+            "type": "string",
+            "const": "Simulação. Não é oferta de crédito.",
+            "title": "Aviso"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "consulta_id",
+          "empresa",
+          "fontes",
+          "pontuacao",
+          "recomendacao",
+          "economia",
+          "benchmark_mercado",
+          "tempo_ms",
+          "aviso"
+        ],
+        "title": "ConsultaResultado",
+        "examples": [
+          {
+            "aviso": "Simulação. Não é oferta de crédito.",
+            "benchmark_mercado": {
+              "disponivel": false,
+              "referencia": "Banco Central, taxas de desconto (MDR)"
+            },
+            "consulta_id": "c_01",
+            "economia": {
+              "custo_mensal_atual": 418.2,
+              "custo_mensal_oferta": 248.4,
+              "economia_anual": 2037.6,
+              "economia_mensal": 169.8,
+              "estimado": true,
+              "meses_para_compensar_saida": 0
+            },
+            "empresa": {
+              "abertura": "1966-08-01",
+              "capital_social": 0,
+              "cnae_principal": "0000-0/00",
+              "cnpj": "00000000000191",
+              "municipio_uf": "Cidade/UF",
+              "nome": "NOME DA EMPRESA",
+              "porte": "DEMAIS",
+              "situacao": "ATIVA"
+            },
+            "fontes": [
+              {
+                "atualizado_em": "2026-11-08",
+                "em_cache": true,
+                "nome": "cnpj_publico",
+                "status": "ok"
+              },
+              {
+                "atualizado_em": "2026-09-01",
+                "em_cache": true,
+                "nome": "bcb_inadimplencia_pj",
+                "status": "ok"
+              }
+            ],
+            "pontuacao": {
+              "faixa": "B",
+              "fatores": [
+                {
+                  "contribuicao": 15,
+                  "explicacao": "Mais de 10 anos de atividade",
+                  "regra": "tempo_de_atividade"
+                }
+              ],
+              "pontos": 72
+            },
+            "recomendacao": {
+              "limite_credito_simulado": 50000.0,
+              "maquina": {
+                "modelo": "Plus",
+                "motivo": "Perfil de vendas na faixa do modelo"
+              },
+              "taxas_antecipacao_simuladas": {
+                "mensal_percentual": 0.0
+              }
+            },
+            "tempo_ms": 840
+          }
+        ]
+      },
+      "Economia": {
+        "properties": {
+          "custo_mensal_atual": {
+            "type": "number",
+            "title": "Custo Mensal Atual"
+          },
+          "custo_mensal_oferta": {
+            "type": "number",
+            "title": "Custo Mensal Oferta"
+          },
+          "economia_mensal": {
+            "type": "number",
+            "title": "Economia Mensal"
+          },
+          "economia_anual": {
+            "type": "number",
+            "title": "Economia Anual"
+          },
+          "meses_para_compensar_saida": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meses Para Compensar Saida"
+          },
+          "estimado": {
+            "type": "boolean",
+            "const": true,
+            "title": "Estimado"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "custo_mensal_atual",
+          "custo_mensal_oferta",
+          "economia_mensal",
+          "economia_anual",
+          "meses_para_compensar_saida",
+          "estimado"
+        ],
+        "title": "Economia"
+      },
+      "Empresa": {
+        "properties": {
+          "cnpj": {
+            "type": "string",
+            "title": "Cnpj"
+          },
+          "nome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nome",
+            "description": "null for MEI and sole proprietors (privacy)."
+          },
+          "situacao": {
+            "type": "string",
+            "title": "Situacao"
+          },
+          "cnae_principal": {
+            "type": "string",
+            "title": "Cnae Principal"
+          },
+          "porte": {
+            "type": "string",
+            "title": "Porte"
+          },
+          "abertura": {
+            "type": "string",
+            "format": "date",
+            "title": "Abertura"
+          },
+          "capital_social": {
+            "type": "number",
+            "title": "Capital Social"
+          },
+          "municipio_uf": {
+            "type": "string",
+            "title": "Municipio Uf"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "cnpj",
+          "nome",
+          "situacao",
+          "cnae_principal",
+          "porte",
+          "abertura",
+          "capital_social",
+          "municipio_uf"
+        ],
+        "title": "Empresa"
+      },
+      "Erro": {
+        "properties": {
+          "erro": {
+            "$ref": "#/components/schemas/ErroDetalhe"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "erro"
+        ],
+        "title": "Erro",
+        "examples": [
+          {
+            "erro": {
+              "codigo": "cnpj_invalido",
+              "mensagem": "CNPJ inválido. Confira os 14 dígitos."
+            }
+          }
+        ]
+      },
+      "ErroDetalhe": {
+        "properties": {
+          "codigo": {
+            "type": "string",
+            "enum": [
+              "nao_encontrado",
+              "transicao_invalida",
+              "entrada_invalida",
+              "cnpj_invalido",
+              "cnpj_fora_da_demo",
+              "limite_de_uso",
+              "nao_implementado",
+              "fonte_indisponivel"
+            ],
+            "title": "Codigo"
+          },
+          "mensagem": {
+            "type": "string",
+            "title": "Mensagem"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "codigo",
+          "mensagem"
+        ],
+        "title": "ErroDetalhe"
+      },
+      "Fator": {
+        "properties": {
+          "regra": {
+            "type": "string",
+            "title": "Regra"
+          },
+          "contribuicao": {
+            "type": "integer",
+            "title": "Contribuicao"
+          },
+          "explicacao": {
+            "type": "string",
+            "title": "Explicacao"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "regra",
+          "contribuicao",
+          "explicacao"
+        ],
+        "title": "Fator"
+      },
+      "Fonte": {
+        "properties": {
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "cache",
+              "indisponivel"
+            ],
+            "title": "Status"
+          },
+          "atualizado_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Atualizado Em"
+          },
+          "em_cache": {
+            "type": "boolean",
+            "title": "Em Cache"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "nome",
+          "status",
+          "atualizado_em",
+          "em_cache"
+        ],
+        "title": "Fonte"
+      },
+      "ListaPropostas": {
+        "properties": {
+          "propostas": {
+            "items": {
+              "$ref": "#/components/schemas/Proposta"
+            },
+            "type": "array",
+            "title": "Propostas"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "propostas"
+        ],
+        "title": "ListaPropostas"
+      },
+      "Maquina": {
+        "properties": {
+          "modelo": {
+            "type": "string",
+            "title": "Modelo"
+          },
+          "motivo": {
+            "type": "string",
+            "title": "Motivo"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "modelo",
+          "motivo"
+        ],
+        "title": "Maquina"
+      },
+      "Mix": {
+        "properties": {
+          "debito": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Debito"
+          },
+          "credito_a_vista": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Credito A Vista"
+          },
+          "credito_parcelado": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Credito Parcelado"
+          },
+          "pix": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Pix"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "debito",
+          "credito_a_vista",
+          "credito_parcelado",
+          "pix"
+        ],
+        "title": "Mix"
+      },
+      "Pendencia": {
+        "properties": {
+          "descricao": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Descricao",
+            "description": "Must not contain personal data."
+          },
+          "criada_em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Criada Em"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "descricao",
+          "criada_em"
+        ],
+        "title": "Pendencia"
+      },
+      "PendenciaEntrada": {
+        "properties": {
+          "descricao": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Descricao",
+            "description": "Must not contain personal data."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "descricao"
+        ],
+        "title": "PendenciaEntrada"
+      },
+      "PerfilVendas": {
+        "properties": {
+          "faturamento_mensal": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Faturamento Mensal"
+          },
+          "mix": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Mix"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "parcelas_medias": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 12.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parcelas Medias"
+          },
+          "ticket_medio": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ticket Medio"
+          },
+          "prazo_recebimento": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "D+0",
+                  "D+1",
+                  "D+2",
+                  "D+14",
+                  "D+30"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prazo Recebimento"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "faturamento_mensal"
+        ],
+        "title": "PerfilVendas"
+      },
+      "Pontuacao": {
+        "properties": {
+          "faixa": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "title": "Faixa"
+          },
+          "pontos": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Pontos"
+          },
+          "fatores": {
+            "items": {
+              "$ref": "#/components/schemas/Fator"
+            },
+            "type": "array",
+            "title": "Fatores"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "faixa",
+          "pontos",
+          "fatores"
+        ],
+        "title": "Pontuacao"
+      },
+      "Proposta": {
+        "properties": {
+          "proposta_id": {
+            "type": "string",
+            "title": "Proposta Id"
+          },
+          "consulta_id": {
+            "type": "string",
+            "title": "Consulta Id"
+          },
+          "agente": {
+            "type": "string",
+            "title": "Agente"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "enviada",
+              "pendente",
+              "aprovada",
+              "recusada"
+            ],
+            "title": "Status"
+          },
+          "observacoes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observacoes"
+          },
+          "pendencias": {
+            "items": {
+              "$ref": "#/components/schemas/Pendencia"
+            },
+            "type": "array",
+            "title": "Pendencias"
+          },
+          "resumo": {
+            "$ref": "#/components/schemas/ResumoProposta"
+          },
+          "criada_em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Criada Em"
+          },
+          "atualizada_em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Atualizada Em"
+          },
+          "aviso": {
+            "type": "string",
+            "const": "Simulação. Não é oferta de crédito.",
+            "title": "Aviso"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "proposta_id",
+          "consulta_id",
+          "agente",
+          "status",
+          "observacoes",
+          "pendencias",
+          "resumo",
+          "criada_em",
+          "atualizada_em",
+          "aviso"
+        ],
+        "title": "Proposta",
+        "examples": [
+          {
+            "agente": "agente_demo",
+            "atualizada_em": "2026-11-12T14:10:00Z",
+            "aviso": "Simulação. Não é oferta de crédito.",
+            "consulta_id": "c_01",
+            "criada_em": "2026-11-12T14:03:00Z",
+            "observacoes": "Comerciante prefere receber em D+1.",
+            "pendencias": [
+              {
+                "criada_em": "2026-11-12T14:10:00Z",
+                "descricao": "Enviar comprovante de faturamento dos últimos 3 meses."
+              }
+            ],
+            "proposta_id": "p_01",
+            "resumo": {
+              "cnpj": "00000000000191",
+              "economia_mensal": 169.8,
+              "faixa": "B",
+              "limite_credito_simulado": 50000.0,
+              "nome": "NOME DA EMPRESA"
+            },
+            "status": "pendente"
+          }
+        ]
+      },
+      "PropostaAtualizacao": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "pendente",
+              "aprovada",
+              "recusada"
+            ],
+            "title": "Status"
+          },
+          "pendencias": {
+            "items": {
+              "$ref": "#/components/schemas/PendenciaEntrada"
+            },
+            "type": "array",
+            "title": "Pendencias"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "PropostaAtualizacao",
+        "examples": [
+          {
+            "pendencias": [
+              {
+                "descricao": "Enviar comprovante de faturamento dos últimos 3 meses."
+              }
+            ],
+            "status": "pendente"
+          }
+        ]
+      },
+      "PropostaEntrada": {
+        "properties": {
+          "consulta_id": {
+            "type": "string",
+            "title": "Consulta Id"
+          },
+          "agente": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,40}$",
+            "title": "Agente",
+            "description": "Demo profile id chosen in 'Entrar na demonstração', e.g. agente_demo. Never a real name."
+          },
+          "observacoes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observacoes",
+            "description": "Free text about the sale. Must not contain personal data."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "consulta_id",
+          "agente"
+        ],
+        "title": "PropostaEntrada",
+        "examples": [
+          {
+            "agente": "agente_demo",
+            "consulta_id": "c_01",
+            "observacoes": "Comerciante prefere receber em D+1."
+          }
+        ]
+      },
+      "Recomendacao": {
+        "properties": {
+          "maquina": {
+            "$ref": "#/components/schemas/Maquina"
+          },
+          "limite_credito_simulado": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Limite Credito Simulado"
+          },
+          "taxas_antecipacao_simuladas": {
+            "$ref": "#/components/schemas/TaxasAntecipacao"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "maquina",
+          "limite_credito_simulado",
+          "taxas_antecipacao_simuladas"
+        ],
+        "title": "Recomendacao"
+      },
+      "ResumoProposta": {
+        "properties": {
+          "cnpj": {
+            "type": "string",
+            "title": "Cnpj"
+          },
+          "nome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nome"
+          },
+          "faixa": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "title": "Faixa"
+          },
+          "limite_credito_simulado": {
+            "type": "number",
+            "title": "Limite Credito Simulado"
+          },
+          "economia_mensal": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Economia Mensal"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "cnpj",
+          "nome",
+          "faixa",
+          "limite_credito_simulado",
+          "economia_mensal"
+        ],
+        "title": "ResumoProposta"
+      },
+      "Saude": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status"
+          },
+          "modo_demo": {
+            "type": "boolean",
+            "title": "Modo Demo"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "modo_demo"
+        ],
+        "title": "Saude",
+        "examples": [
+          {
+            "modo_demo": true,
+            "status": "ok"
+          }
+        ]
+      },
+      "SituacaoAtual": {
+        "properties": {
+          "taxas": {
+            "$ref": "#/components/schemas/Taxas"
+          },
+          "custo_maquina_mensal": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Custo Maquina Mensal",
+            "default": 0.0
+          },
+          "custo_saida": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Custo Saida",
+            "default": 0.0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "taxas"
+        ],
+        "title": "SituacaoAtual"
+      },
+      "Taxas": {
+        "properties": {
+          "debito": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Debito"
+          },
+          "credito_a_vista": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credito A Vista"
+          },
+          "credito_parcelado": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credito Parcelado"
+          },
+          "pix": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pix"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Taxas",
+        "description": "Rates in percent. null means \"not informed\", never zero."
+      },
+      "TaxasAntecipacao": {
+        "properties": {
+          "mensal_percentual": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Mensal Percentual"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "mensal_percentual"
+        ],
+        "title": "TaxasAntecipacao"
+      },
+      "DadosEvento": {
+        "additionalProperties": false,
+        "properties": {
+          "faixa": {
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "title": "Faixa",
+            "type": "string"
+          },
+          "limite_credito_simulado": {
+            "title": "Limite Credito Simulado",
+            "type": "number"
+          }
+        },
+        "required": [
+          "faixa",
+          "limite_credito_simulado"
+        ],
+        "title": "DadosEvento",
+        "type": "object"
+      },
+      "Evento": {
+        "additionalProperties": false,
+        "examples": [
+          {
+            "aviso": "Simulação. Não é oferta de crédito.",
+            "dados": {
+              "faixa": "B",
+              "limite_credito_simulado": 50000.0
+            },
+            "id": "e_01",
+            "ocorrido_em": "2026-11-12T14:03:00Z",
+            "proposta_id": "p_01",
+            "tipo": "proposta.criada"
+          }
+        ],
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "tipo": {
+            "enum": [
+              "proposta.criada",
+              "proposta.pendente",
+              "proposta.aprovada",
+              "proposta.recusada"
+            ],
+            "title": "Tipo",
+            "type": "string"
+          },
+          "ocorrido_em": {
+            "format": "date-time",
+            "title": "Ocorrido Em",
+            "type": "string"
+          },
+          "proposta_id": {
+            "title": "Proposta Id",
+            "type": "string"
+          },
+          "dados": {
+            "$ref": "#/components/schemas/DadosEvento"
+          },
+          "aviso": {
+            "const": "Simulação. Não é oferta de crédito.",
+            "title": "Aviso",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tipo",
+          "ocorrido_em",
+          "proposta_id",
+          "dados",
+          "aviso"
+        ],
+        "title": "Evento",
+        "type": "object"
+      }
+    }
+  }
+}

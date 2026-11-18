@@ -2,7 +2,7 @@
 
 Documento vivo. Atualize depois de cada call ou decisão.
 
-Última atualização: 10/11/2026.
+Última atualização: 17/11/2026.
 
 Legenda: **Decidido** = o time confirmou. **Proposto** = sugestão para confirmar. **Em aberto** = ainda sem resposta.
 
@@ -13,6 +13,10 @@ Legenda: **Decidido** = o time confirmou. **Proposto** = sugestão para confirma
 - Trilha: **Pagamentos & finanças**.
 - Ideia: **CredFácil**, aprovada pelo time (informado pelo Felipe em 08/11). Detalhes em `docs/PRODUTO.md`. O documento original (POS-Intel) é a base; este repositório detalha o MVP e marca onde nos afastamos dele.
 - Hospedagem: **Vercel** (informado pelo Felipe em 09/11). Pendente: teste de deploy com várias contas do GitHub (T-36, D-014) e confirmar API em Python, SSE e banco na Vercel.
+- Protótipo da landing feito pela Amanda no Figma (17/11). Tarefas de código abertas como issues #12 a #26.
+- Login e chat do protótipo ficam: "Entrar na demonstração" (Agente ou Matriz) e ajuda com respostas prontas, sem LLM (D-015).
+- Catálogo da demo com marcas fictícias (D-016). Valores da landing vêm do simulador; até ele existir, ficam os do protótipo, marcados como ilustrativos (D-017).
+- Telas que faltam no Figma são feitas seguindo a estética do protótipo (D-018).
 - Haverá integrantes usando Gemini CLI. `GEMINI.md` importa o `AGENTS.md`; ver `docs/IA.md`.
 
 ## Propostas para confirmar
@@ -27,6 +31,7 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 | Simulador de economia | Do RFC "Comparador de Maquininhas": custo atual contra custo com a oferta, economia em reais por mês e por ano, custo de saída e referência do Banco Central. Afiliados e comparação por marca ficam fora (D-011, D-013) |
 | Privacidade | Modo demo com lista de CNPJs e sanitização (D-005) |
 | Stack | Next.js + TypeScript, FastAPI, Postgres, Server-Sent Events (ver `docs/ARQUITETURA.md`) |
+| Contrato da API v1 | Escrito em `docs/ARQUITETURA.md` e em `api/openapi.json` (issue #12). A consulta só exige CNPJ e faturamento; sem mix ou taxas atuais, não há economia (D-019). Aguarda aprovação de Felipe, Guilherme e Kayke |
 | Pastas | Monorepo com `/web` e `/api`. Sem `/ml` |
 | Papéis | Felipe: API, fontes, integrações e deploy. Kayke: pontuação, dados fictícios. Guilherme: web (agente e matriz). Amanda: UX, acessibilidade, vídeo e README |
 | Organização do código | Contrato da API definido primeiro, `main` sempre funcionando com deploy automático, PR com revisão (ver `docs/PROCESSO.md`) |
@@ -53,7 +58,7 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - Taxas e faixas do catálogo de demonstração e premissas do simulador: quem define é o Kayke (T-05). São ilustrativas.
 - Pix na maquininha: o RFC assume taxa zero. Conferir antes de usar esse valor em qualquer cálculo.
 - Programas de afiliado: quais existem e quanto pagam. Só importa se o modelo de receita entrar no pitch.
-- Vídeo, marcas: o catálogo da demo é fictício e sem marcas reais (AGENTS.md), mas a issue nº 8 e o `docs/roteiro.md` do Kayke usam Cielo, InfinitePay e Ton com taxas reais. Decidir: manter o catálogo fictício ou mostrar marcas reais com fonte e data na tela, em cada taxa (10/11, ver `docs/roteiro-unico-proposta.md`).
+- Nome das marcas fictícias do catálogo. O time pensou em nomes parecidos com os reais (ex.: "InfinitoPay"); recomendação: nomes que não lembrem marca real (D-016, 17/11).
 - Vídeo, quantidade: o roteiro do Kayke fala em "passar de fase" e créditos para abrir a empresa, e a seção "Próximos passos" fala em um rascunho de 3 minutos para liberar créditos. É um vídeo só ou dois (pitch para os créditos e entrega final do evento)? (10/11)
 - Vídeo, idioma: inglês (preferido pelo evento) ou português (aceito). O roteiro do Kayke está em português e `docs/roteiro-video.md` em inglês, com tradução (10/11).
 
@@ -82,3 +87,5 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - 09/11: time decidiu hospedar na Vercel. Pesquisa: o plano grátis (Hobby) só permite deploy pelo dono da conta; plano B e teste em D-004, D-014 e T-36.
 - 10/11: suporte a Gemini CLI (`GEMINI.md`, seção em `docs/IA.md`).
 - 10/11: roteiro de fala do vídeo (`docs/roteiro-video.md`) e proposta de roteiro único junto com o do Kayke (`docs/roteiro-unico-proposta.md`). Três perguntas novas em "Em aberto": marcas, quantidade de vídeos e idioma.
+- 17/11: protótipo do Figma recebido; issues #12 a #26 criadas; decisões D-015 a D-018.
+- 17/11: contrato da API v1 com schemas, OpenAPI e testes de contrato (issue #12); proposta D-019.

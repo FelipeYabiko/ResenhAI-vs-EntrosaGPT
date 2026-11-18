@@ -57,13 +57,36 @@ Donos (proposta): `/api/fontes` e `/api/app` Felipe; `/api/scoring` e `/api/reco
 
 ## Contrato da API (v1)
 
-Fonte da verdade: o OpenAPI gerado pelo FastAPI (`api/openapi.json`). O `/web` gera os tipos a partir dele. Mudou o contrato? Use a skill `contrato-api`.
+Fonte da verdade: o OpenAPI gerado pelo FastAPI a partir de `api/app/schemas.py` e salvo em `api/openapi.json` (`python scripts/exportar_openapi.py`). O `/web` gera os tipos a partir dele. Mudou o contrato? Use a skill `contrato-api`. Os exemplos desta seção são os mesmos dos schemas e são conferidos por teste (`api/tests/test_contrato.py`).
 
-Convenções: JSON, campos em `snake_case` sem acento, datas em ISO 8601, erros como `{"erro": {"codigo": "...", "mensagem": "..."}}`, mensagens em português.
+Convenções: JSON, campos em `snake_case` sem acento, datas em ISO 8601, mensagens em português. Valores em reais com duas casas; percentuais como número (40 é 40%; 1,99 é 1,99%).
+
+Toda resposta que mostra limite, taxa, economia ou aprovação traz `"aviso": "Simulação. Não é oferta de crédito."`.
+
+### Erros
+
+Todo erro usa o mesmo formato, inclusive os de validação:
+
+```json
+{ "erro": { "codigo": "cnpj_invalido", "mensagem": "CNPJ inválido. Confira os 14 dígitos." } }
+```
+
+| Status | `codigo` | Quando |
+| --- | --- | --- |
+| `404` | `nao_encontrado` | Consulta ou proposta não existe |
+| `409` | `transicao_invalida` | Mudança de status não permitida, ou contrato pedido antes da aprovação |
+| `422` | `entrada_invalida` | Campo faltando ou fora do formato |
+| `422` | `cnpj_invalido` | Dígitos verificadores errados |
+| `422` | `cnpj_fora_da_demo` | `MODO_DEMO=true` e o CNPJ não está em `fixtures/cnpjs_demo.json` |
+| `429` | `limite_de_uso` | Limite de uso da API ou de uma fonte |
+| `501` | `nao_implementado` | Rota prevista no contrato e ainda não implementada |
+| `502` | `fonte_indisponivel` | Fonte fora do ar e sem dado em cache |
 
 ### `POST /v1/consultas`
 
-Entrada:
+O CNPJ vai só com os 14 dígitos (o front tira pontos, barra e traço). Só `cnpj` e `perfil_vendas.faturamento_mensal` são obrigatórios: é o que o formulário da landing pede (protótipo do Figma). O resto do perfil e a `situacao_atual` são opcionais e, quando vierem, são estimativas do comerciante.
+
+Entrada (completa):
 
 ```json
 {
@@ -83,7 +106,13 @@ Entrada:
 }
 ```
 
-Mix e taxas em percentual (40 é 40%; 1,99 é 1,99%). O mix soma 100. `situacao_atual` é opcional e sempre tratada como estimativa do comerciante.
+Entrada mínima (formulário da landing):
+
+```json
+{ "cnpj": "00000000000191", "perfil_vendas": { "faturamento_mensal": 10000.00 } }
+```
+
+Regras de entrada: o mix soma 100. `prazo_recebimento` é `D+0`, `D+1`, `D+2`, `D+14` ou `D+30`. Taxa `null` quer dizer "não informada" e nunca é tratada como zero. No exemplo, `"pix": 0.0` é a taxa que o comerciante informou, não um valor assumido pela API.
 
 Saída `200`:
 
@@ -134,21 +163,72 @@ Saída `200`:
 }
 ```
 
-Os números do exemplo são ilustrativos. Erros: `422` CNPJ inválido ou fora da lista de demonstração, `502` fonte indisponível sem cache, `429` limite de uso.
+Os números do exemplo são ilustrativos. `economia` vem `null` quando faltam o mix ou as taxas atuais: sem eles não há o que comparar, e a API não inventa um perfil padrão. Nesse caso a tela convida a completar o perfil. `fontes[].status` é `ok`, `cache` (fonte fora do ar, devolvido o último dado guardado, com a data dele) ou `indisponivel`. `pontuacao.faixa` vai de `A` a `E`. Erros: `422`, `429`, `501` (enquanto não implementada) e `502`.
 
 ### Propostas
 
 | Método e caminho | Para quê | Resposta |
 | --- | --- | --- |
-| `POST /v1/propostas` | Agente envia a proposta (`consulta_id`, `agente`, `observacoes`) | `201` com `proposta_id` e `status: "enviada"` |
-| `GET /v1/propostas` | Matriz lista propostas (filtro `status`) | `200` lista |
-| `GET /v1/propostas/{id}` | Detalhe | `200` |
-| `PATCH /v1/propostas/{id}` | Matriz muda status (`aprovada`, `recusada`, `pendente`) e envia `pendencias[]` | `200` |
-| `GET /v1/propostas/{id}/contrato` | PDF simulado, só se aprovada | `200` `application/pdf` |
+| `POST /v1/propostas` | Agente envia a proposta | `201` com a proposta e `status: "enviada"` |
+| `GET /v1/propostas?status=enviada` | Matriz lista propostas (filtro opcional por `status`) | `200` com `{"propostas": [...]}` |
+| `GET /v1/propostas/{proposta_id}` | Detalhe | `200` com a proposta |
+| `PATCH /v1/propostas/{proposta_id}` | Matriz muda o status | `200` com a proposta |
+| `GET /v1/propostas/{proposta_id}/contrato` | PDF simulado, com marca d'água "SIMULAÇÃO" | `200` `application/pdf`; `409` se não estiver aprovada |
 | `GET /v1/eventos` | Fluxo SSE de eventos | `text/event-stream` |
 | `GET /v1/saude` | Verificação de saúde | `200` |
 
+`agente` é o identificador do perfil de demonstração escolhido em "Entrar na demonstração" (D-015), só letras minúsculas, números e `_`. Não há login nem nome de pessoa real. `observacoes` e `pendencias[].descricao` são texto livre: a tela avisa para não escrever dado pessoal (nome, CPF, telefone, e-mail).
+
+Entrada de `POST /v1/propostas`:
+
+```json
+{ "consulta_id": "c_01", "agente": "agente_demo", "observacoes": "Comerciante prefere receber em D+1." }
+```
+
+Proposta (resposta de `POST`, `GET` e `PATCH`):
+
+```json
+{
+  "proposta_id": "p_01",
+  "consulta_id": "c_01",
+  "agente": "agente_demo",
+  "status": "pendente",
+  "observacoes": "Comerciante prefere receber em D+1.",
+  "pendencias": [
+    { "descricao": "Enviar comprovante de faturamento dos últimos 3 meses.", "criada_em": "2026-11-12T14:10:00Z" }
+  ],
+  "resumo": {
+    "cnpj": "00000000000191",
+    "nome": "NOME DA EMPRESA",
+    "faixa": "B",
+    "limite_credito_simulado": 50000.00,
+    "economia_mensal": 169.80
+  },
+  "criada_em": "2026-11-12T14:03:00Z",
+  "atualizada_em": "2026-11-12T14:10:00Z",
+  "aviso": "Simulação. Não é oferta de crédito."
+}
+```
+
+`resumo` traz o que a matriz precisa para decidir sem abrir a consulta. `resumo.economia_mensal` é `null` quando a consulta não teve economia.
+
+Entrada de `PATCH /v1/propostas/{proposta_id}`:
+
+```json
+{ "status": "pendente", "pendencias": [ { "descricao": "Enviar comprovante de faturamento dos últimos 3 meses." } ] }
+```
+
+Status possíveis: `enviada`, `pendente`, `aprovada`, `recusada`. Transições permitidas: de `enviada` ou `pendente` para `pendente`, `aprovada` ou `recusada`. `aprovada` e `recusada` são finais. Pedir `pendente` exige ao menos uma pendência. Outra transição devolve `409`.
+
+Saída de `GET /v1/saude`:
+
+```json
+{ "status": "ok", "modo_demo": true }
+```
+
 ### Evento
+
+Cada evento do SSE vai em uma mensagem `event: <tipo>` com o JSON abaixo em `data:`.
 
 ```json
 {
@@ -156,7 +236,8 @@ Os números do exemplo são ilustrativos. Erros: `422` CNPJ inválido ou fora da
   "tipo": "proposta.criada",
   "ocorrido_em": "2026-11-12T14:03:00Z",
   "proposta_id": "p_01",
-  "dados": { "faixa": "B", "limite_credito_simulado": 50000.00 }
+  "dados": { "faixa": "B", "limite_credito_simulado": 50000.00 },
+  "aviso": "Simulação. Não é oferta de crédito."
 }
 ```
 
@@ -167,7 +248,7 @@ Tipos: `proposta.criada`, `proposta.pendente`, `proposta.aprovada`, `proposta.re
 | Tabela | Campos principais |
 | --- | --- |
 | `consultas` | `id`, `cnpj`, `faturamento_informado`, `resultado` (JSON), `criado_em` |
-| `propostas` | `id`, `consulta_id`, `agente`, `status`, `pendencias` (JSON), `criado_em`, `atualizado_em` |
+| `propostas` | `id`, `consulta_id`, `agente`, `status`, `observacoes`, `pendencias` (JSON), `criada_em`, `atualizada_em` |
 | `eventos` | `id`, `tipo`, `proposta_id`, `dados` (JSON), `ocorrido_em` |
 | `cache_fontes` | `chave`, `dados` (JSON já sanitizados), `buscado_em`, `ttl_s` |
 
