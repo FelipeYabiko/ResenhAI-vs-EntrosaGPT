@@ -100,3 +100,4 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - 17/11: pasta `web/` criada (combinado com o Guilherme): Next.js, cores e fonte do Figma com contraste conferido, landing e formulário ligado à API. Testes no navegador com axe sem violações.
 - 18/11: parte de dados da consulta (#16): limpeza da resposta da fonte de CNPJ e dados de demonstração gerados a partir dela. Ambiente da sessão liberado para `open.cnpja.com`.
 - 18/11: API das decisões da matriz (pendência, aprovação, recusa), cada uma publicada como evento em tempo real (SSE); contrato em PDF fica para o próximo passo.
+- 18/11: contrato simulado em PDF para proposta aprovada (RF-09).
