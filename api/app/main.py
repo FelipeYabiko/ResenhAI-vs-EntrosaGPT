@@ -215,7 +215,8 @@ async def atualizar_proposta(proposta_id: str, entrada: PropostaAtualizacao) -> 
     tags=["propostas"],
 )
 async def contrato_simulado(proposta_id: str) -> Response:
-    # RF-09: only an approved proposal has a (simulated) contract.
+    # RF-09: only an approved proposal has a (simulated) contract. A one-page PDF takes ~10 ms, so it
+    # runs on the event loop like the other proposal routes (no thread, no lock needed).
     proposta = _proposta_ou_404(proposta_id)
     if proposta.status != "aprovada":
         raise ErroApi(409, "transicao_invalida", "O contrato simulado só existe depois que a proposta é aprovada.")

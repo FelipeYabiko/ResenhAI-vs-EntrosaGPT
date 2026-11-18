@@ -103,3 +103,22 @@ def test_proposta_inexistente_devolve_404():
     resposta = cliente.get("/v1/propostas/p_nao_existe/contrato")
     assert resposta.status_code == 404
     assert resposta.json()["erro"]["codigo"] == "nao_encontrado"
+
+
+@pytest.mark.parametrize(
+    ("digitado", "no_pdf"),
+    [
+        ("Enviar comprovante — urgente", "Enviar comprovante - urgente"),
+        ("Anexar nota “fiscal” e ‘recibo’", "Anexar nota \"fiscal\" e 'recibo'"),
+        ("Conferir os dados… depois", "Conferir os dados... depois"),
+        ("Verificar ✅ dados", "Verificar ? dados"),
+    ],
+)
+def test_pendencia_com_caracteres_do_celular_nao_quebra_o_pdf(digitado, no_pdf):
+    # Phones and word processors insert dashes, curly quotes and emoji on their own.
+    proposta_id = _proposta(aprovar=False)
+    cliente.patch(f"/v1/propostas/{proposta_id}", json={"status": "pendente", "pendencias": [{"descricao": digitado}]})
+    cliente.patch(f"/v1/propostas/{proposta_id}", json={"status": "aprovada"})
+    resposta = cliente.get(f"/v1/propostas/{proposta_id}/contrato")
+    assert resposta.status_code == 200
+    assert no_pdf in _texto(resposta.content)

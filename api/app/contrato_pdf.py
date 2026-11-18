@@ -19,6 +19,16 @@ CLAUSULA = (
 )
 
 
+# The built-in PDF font covers Latin-1 only (all Portuguese letters are there). Free text typed on a
+# phone often brings dashes, curly quotes or emoji: map the common ones and turn the rest into "?",
+# instead of failing to build the PDF.
+_TROCAS = str.maketrans({"—": "-", "–": "-", "“": '"', "”": '"', "‘": "'", "’": "'", "…": "...", "•": "-"})
+
+
+def _texto_seguro(texto: str) -> str:
+    return texto.translate(_TROCAS).encode("latin-1", "replace").decode("latin-1")
+
+
 def _reais(valor: float) -> str:
     """50000.0 -> R$ 50.000,00 (no locale dependency)."""
     texto = f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
@@ -46,7 +56,7 @@ class _Documento(FPDF):
 
 def gerar_contrato_pdf(proposta: Proposta) -> bytes:
     pdf = _Documento(format="A4")
-    pdf.set_title(f"Contrato simulado {proposta.proposta_id}")
+    pdf.set_title(_texto_seguro(f"Contrato simulado {proposta.proposta_id}"))
     pdf.set_author("CredFácil (demonstração)")
     pdf.set_lang("pt-BR")
     pdf.set_margins(20, 20, 20)
@@ -70,7 +80,7 @@ def gerar_contrato_pdf(proposta: Proposta) -> bytes:
         pdf.cell(0, 8, titulo, new_x="LMARGIN", new_y="NEXT")
         pdf.set_font("Helvetica", "", 11)
         for linha in linhas:
-            pdf.multi_cell(0, 6.5, linha, new_x="LMARGIN", new_y="NEXT")
+            pdf.multi_cell(0, 6.5, _texto_seguro(linha), new_x="LMARGIN", new_y="NEXT")
 
     resumo = proposta.resumo
     secao(
