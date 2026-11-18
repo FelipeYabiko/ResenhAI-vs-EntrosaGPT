@@ -337,9 +337,11 @@ class PropostaAtualizacao(Modelo):
     pendencias: list[PendenciaEntrada] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def pendente_exige_pendencia(self) -> "PropostaAtualizacao":
+    def pendencias_so_com_pendente(self) -> "PropostaAtualizacao":
         if self.status == "pendente" and not self.pendencias:
             raise ValueError("Para pedir pendência, informe ao menos uma pendência.")
+        if self.status != "pendente" and self.pendencias:
+            raise ValueError("Pendências só valem quando o status pedido é pendente.")
         return self
 
 

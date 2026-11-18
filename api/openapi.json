@@ -258,6 +258,7 @@
           "propostas"
         ],
         "summary": "Atualizar Proposta",
+        "description": "Back office decision (RF-07, RF-08). aprovada and recusada are final.",
         "operationId": "atualizar_proposta_v1_propostas__proposta_id__patch",
         "parameters": [
           {
@@ -320,16 +321,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Erro"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         }
       }

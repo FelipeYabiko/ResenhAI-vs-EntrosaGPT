@@ -27,6 +27,7 @@ from app.schemas import (
     Erro,
     Evento,
     ListaPropostas,
+    Pendencia,
     Proposta,
     PropostaAtualizacao,
     PropostaEntrada,
@@ -149,11 +150,16 @@ async def criar_proposta(entrada: PropostaEntrada) -> Proposta:
         aviso=AVISO_SIMULACAO,
     )
     memoria.propostas[proposta.proposta_id] = proposta
+    _publicar(proposta, "proposta.criada", agora)
+    return proposta
+
+
+def _publicar(proposta: Proposta, tipo: str, quando: datetime) -> None:
     memoria.eventos.publicar(
         Evento(
             id=f"e_{uuid4().hex[:12]}",
-            tipo="proposta.criada",
-            ocorrido_em=agora,
+            tipo=tipo,
+            ocorrido_em=quando,
             proposta_id=proposta.proposta_id,
             dados=DadosEvento(
                 faixa=proposta.resumo.faixa, limite_credito_simulado=proposta.resumo.limite_credito_simulado
@@ -161,7 +167,6 @@ async def criar_proposta(entrada: PropostaEntrada) -> Proposta:
             aviso=AVISO_SIMULACAO,
         )
     )
-    return proposta
 
 
 @app.get("/v1/propostas", response_model=ListaPropostas, responses=_erros(422), tags=["propostas"])
@@ -183,11 +188,22 @@ async def obter_proposta(proposta_id: str) -> Proposta:
 @app.patch(
     "/v1/propostas/{proposta_id}",
     response_model=Proposta,
-    responses=_erros(404, 409, 422, 501),
+    responses=_erros(404, 409, 422),
     tags=["propostas"],
 )
-def atualizar_proposta(proposta_id: str, entrada: PropostaAtualizacao) -> Proposta:
-    raise _nao_implementado()  # built in issue #24
+async def atualizar_proposta(proposta_id: str, entrada: PropostaAtualizacao) -> Proposta:
+    """Back office decision (RF-07, RF-08). aprovada and recusada are final."""
+    proposta = _proposta_ou_404(proposta_id)
+    if proposta.status not in ("enviada", "pendente"):
+        raise ErroApi(409, "transicao_invalida", f"A proposta já foi {proposta.status} e não pode mudar.")
+    agora = _agora()
+    novas = [Pendencia(descricao=p.descricao, criada_em=agora) for p in entrada.pendencias]
+    proposta = proposta.model_copy(
+        update={"status": entrada.status, "pendencias": [*proposta.pendencias, *novas], "atualizada_em": agora}
+    )
+    memoria.propostas[proposta_id] = proposta
+    _publicar(proposta, f"proposta.{entrada.status}", agora)
+    return proposta
 
 
 @app.get(

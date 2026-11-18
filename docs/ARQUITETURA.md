@@ -219,7 +219,7 @@ Entrada de `PATCH /v1/propostas/{proposta_id}`:
 { "status": "pendente", "pendencias": [ { "descricao": "Enviar comprovante de faturamento dos últimos 3 meses." } ] }
 ```
 
-Status possíveis: `enviada`, `pendente`, `aprovada`, `recusada`. Transições permitidas: de `enviada` ou `pendente` para `pendente`, `aprovada` ou `recusada`. `aprovada` e `recusada` são finais. Pedir `pendente` exige ao menos uma pendência. Outra transição devolve `409`.
+Status possíveis: `enviada`, `pendente`, `aprovada`, `recusada`. Transições permitidas: de `enviada` ou `pendente` para `pendente`, `aprovada` ou `recusada`. `aprovada` e `recusada` são finais. Pedir `pendente` exige ao menos uma pendência, e pendência só vale com `pendente` (com outro status, `422`). As pendências se acumulam, cada uma com a data em que foi pedida. Outra transição devolve `409`, sem mudar nada. Cada decisão publica o evento `proposta.<status>`.
 
 Saída de `GET /v1/saude`:
 
