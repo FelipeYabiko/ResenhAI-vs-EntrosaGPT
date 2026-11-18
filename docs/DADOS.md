@@ -75,8 +75,12 @@ Timeout de 1,2 s por chamada. Nunca devolver dado inventado no lugar de falha.
 
 ## Dados fictícios
 
-- `fixtures/cnpjs_demo.json`: lista de CNPJs da demonstração, cada um com a origem (`real_empresa_grande` ou `ficticio`).
-- CNPJ fictício precisa ter **dígitos verificadores válidos**, senão a validação (RF-01) o recusa. Gere com `scripts/` e registre aqui como foram gerados.
+- `fixtures/cnpjs_demo.json`: lista de CNPJs da demonstração, cada um com a origem (`real_empresa_grande` ou `ficticio`) e a data em que foi conferido. Montada em 18/11/2026:
+  - **Empresas grandes** (Banco do Brasil, Caixa, Petrobras, Correios): todas estatais, confirmadas na fonte pública com `scripts/gerar_fixture_empresa.py`, que só salva empresa de natureza grande.
+  - **Fictícios** (mercadinho, salão e loja de material de construção, os 3 perfis da landing): dígitos válidos, gerados com `scripts/gerar_cnpj_ficticio.py`, que só aceita número que a fonte responde como **inexistente** (HTTP 404). Os dados deles são inventados e o nome termina em "(FICTÍCIO)".
+- **Atenção:** CNPJ com dígito válido não é fictício só por parecer genérico. O `11.222.333/0001-81`, muito usado como exemplo, é de uma associação real (conferido em 18/11/2026). Por isso todo fictício passa pela checagem na fonte. Para testes, use `98.765.435/0001-21` (inexistente na fonte em 18/11/2026, fora da lista da demo).
+- CNPJ fictício precisa ter **dígitos verificadores válidos**, senão a validação (RF-01) o recusa.
+- Os códigos CNAE dos fictícios (4712-1/00 minimercado, 9602-5/01 cabeleireiro, 4744-0/99 material de construção) foram escritos de memória: conferir na tabela CNAE do IBGE antes de aparecerem no vídeo.
 - Faturamentos de exemplo para a demo ficam em `fixtures/` e são sempre marcados como exemplo.
 - O contrato simulado e as propostas de exemplo usam só nomes inventados.
 - O catálogo de máquinas e de taxas da demo é fictício e marcado como ilustrativo. Não use marcas reais.

@@ -11,6 +11,7 @@ Run from the repository root:  python scripts/gerar_fixture_empresa.py 000000000
 
 import sys
 import time
+import urllib.error
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "api"))
@@ -27,7 +28,11 @@ def main(cnpjs: list[str]) -> int:
     for i, cnpj in enumerate(cnpjs):
         if i:
             time.sleep(PAUSA_S)
-        dados = sanitizar(baixar(cnpj, tempo_limite_s=10), cnpj)
+        try:
+            dados = sanitizar(baixar(cnpj, tempo_limite_s=10), cnpj)
+        except (urllib.error.HTTPError, ValueError) as erro:
+            print(f"{cnpj}: não salvo ({erro}).")
+            continue
         if dados.empresa.nome is None:
             print(f"{cnpj}: não salvo. Não é empresa grande (S.A., estatal ou órgão público).")
             continue

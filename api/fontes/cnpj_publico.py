@@ -6,6 +6,7 @@ The answer brings partners (with masked CPF), e-mails, phones and the full addre
 """
 
 import json
+import urllib.error
 import urllib.request
 from datetime import date
 from pathlib import Path
@@ -94,6 +95,20 @@ def baixar(cnpj: str, tempo_limite_s: float = TEMPO_LIMITE_S) -> dict:
     if len(corpo) > TAMANHO_MAXIMO:
         raise ValueError("Resposta da fonte de CNPJ grande demais.")
     return json.loads(corpo)
+
+
+def existe_na_fonte(cnpj: str, tempo_limite_s: float = 10) -> bool:
+    """True if the source knows this CNPJ (HTTP 200), False if not (HTTP 404). Other errors propagate.
+
+    Used to make sure a fictitious demo CNPJ is not a real company or person. The answer body is ignored.
+    """
+    try:
+        baixar(cnpj, tempo_limite_s)
+    except urllib.error.HTTPError as erro:
+        if erro.code == 404:
+            return False
+        raise
+    return True
 
 
 def salvar_fixture(dados: DadosEmpresa) -> Path:

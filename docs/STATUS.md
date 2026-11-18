@@ -101,3 +101,4 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - 18/11: parte de dados da consulta (#16): limpeza da resposta da fonte de CNPJ e dados de demonstração gerados a partir dela. Ambiente da sessão liberado para `open.cnpja.com`.
 - 18/11: API das decisões da matriz (pendência, aprovação, recusa), cada uma publicada como evento em tempo real (SSE); contrato em PDF fica para o próximo passo.
 - 18/11: contrato simulado em PDF para proposta aprovada (RF-09).
+- 18/11: lista de CNPJs da demo (#15): 4 estatais conferidas na fonte e 3 fictícios (mercadinho, salão, loja) conferidos como inexistentes. Descoberto que o CNPJ de exemplo 11.222.333/0001-81 é de uma associação real; trocado nos testes.
