@@ -6,12 +6,11 @@ The answer brings partners (with masked CPF), e-mails, phones and the full addre
 """
 
 import json
-import re
 import urllib.request
 from datetime import date
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 from app.cnpj import cnpj_valido
 from app.schemas import Empresa
@@ -21,8 +20,22 @@ TEMPO_LIMITE_S = 1.2
 NOME_FONTE = "cnpj_publico"
 PASTA_FIXTURES = Path(__file__).resolve().parents[2] / "fixtures" / "respostas_fontes"
 
-# Legal natures whose legal name usually carries the owner's name: hide it (docs/DADOS.md).
-_NATUREZA_DE_PESSOA = re.compile(r"individual|unipessoal", re.IGNORECASE)
+TAMANHO_MAXIMO = 200_000  # bytes; a normal answer is about 10 KB
+
+# The company name is shown ONLY for legal natures that cannot be one person:
+# public administration (1xxx) and corporations / state companies. Everything else
+# (LTDA, which may have a single owner; MEI; individual entrepreneur; natural persons, 4xxx)
+# gets name = null, because the legal name often carries the owner's name (docs/DADOS.md).
+NATUREZAS_COM_NOME = {
+    2011,  # Empresa Pública
+    2038,  # Sociedade de Economia Mista
+    2046,  # Sociedade Anônima Aberta
+    2054,  # Sociedade Anônima Fechada
+}
+
+
+def nome_pode_aparecer(natureza_id: int, mei: bool) -> bool:
+    return not mei and (1000 <= natureza_id < 2000 or natureza_id in NATUREZAS_COM_NOME)
 
 
 class DadosEmpresa(BaseModel):
@@ -38,16 +51,19 @@ def _cnae(codigo: int) -> str:
     return f"{d[:4]}-{d[4]}/{d[5:]}"
 
 
-def sanitizar(resposta: dict) -> DadosEmpresa:
-    """Keep only company data from a source answer. Raises ValueError if fields are missing."""
+def sanitizar(resposta: dict, cnpj_pedido: str) -> DadosEmpresa:
+    """Keep only company data from a source answer. Raises ValueError if it is not the CNPJ asked for
+    or not in the expected format. Error messages never echo values from the answer."""
     try:
+        if resposta["taxId"] != cnpj_pedido or not cnpj_valido(cnpj_pedido):
+            raise ValueError("Resposta da fonte de CNPJ é de outro CNPJ.")
         empresa = resposta["company"]
-        pessoa_no_nome = empresa["simei"]["optant"] or _NATUREZA_DE_PESSOA.search(empresa["nature"]["text"])
+        com_nome = nome_pode_aparecer(int(empresa["nature"]["id"]), mei=bool(empresa["simei"]["optant"]))
         return DadosEmpresa(
             atualizado_em=date.fromisoformat(resposta["updated"][:10]),
             empresa=Empresa(
                 cnpj=resposta["taxId"],
-                nome=None if pessoa_no_nome else empresa["name"],
+                nome=empresa["name"] if com_nome else None,
                 situacao=resposta["status"]["text"].upper(),
                 cnae_principal=_cnae(resposta["mainActivity"]["id"]),
                 porte=empresa["size"]["acronym"],
@@ -56,8 +72,12 @@ def sanitizar(resposta: dict) -> DadosEmpresa:
                 municipio_uf=f"{resposta['address']['city']}/{resposta['address']['state']}",
             ),
         )
-    except (KeyError, TypeError) as erro:
-        raise ValueError(f"Resposta da fonte de CNPJ fora do formato esperado (campo {erro}).") from None
+    except ValueError as erro:
+        if "outro CNPJ" in str(erro):
+            raise
+        raise ValueError("Resposta da fonte de CNPJ fora do formato esperado.") from None
+    except (KeyError, TypeError, ValidationError):
+        raise ValueError("Resposta da fonte de CNPJ fora do formato esperado.") from None
 
 
 def baixar(cnpj: str, tempo_limite_s: float = TEMPO_LIMITE_S) -> dict:
@@ -68,10 +88,17 @@ def baixar(cnpj: str, tempo_limite_s: float = TEMPO_LIMITE_S) -> dict:
     if not cnpj_valido(cnpj):
         raise ValueError("CNPJ inválido: a fonte só é chamada com CNPJ válido.")
     with urllib.request.urlopen(URL_FONTE + cnpj, timeout=tempo_limite_s) as resposta:
-        return json.load(resposta)
+        if not resposta.geturl().startswith(URL_FONTE):
+            raise ValueError("A fonte de CNPJ redirecionou para outro endereço.")
+        corpo = resposta.read(TAMANHO_MAXIMO + 1)
+    if len(corpo) > TAMANHO_MAXIMO:
+        raise ValueError("Resposta da fonte de CNPJ grande demais.")
+    return json.loads(corpo)
 
 
 def salvar_fixture(dados: DadosEmpresa) -> Path:
+    if not cnpj_valido(dados.empresa.cnpj):
+        raise ValueError("CNPJ inválido.")
     arquivo = PASTA_FIXTURES / f"{dados.empresa.cnpj}.json"
     conteudo = {"fonte": NOME_FONTE, **dados.model_dump(mode="json")}
     arquivo.parent.mkdir(parents=True, exist_ok=True)

@@ -66,11 +66,12 @@ def resposta_da_fonte(**mudancas) -> dict:
 
 
 def test_sanitizar_mantem_so_dados_da_empresa():
-    dados = sanitizar(resposta_da_fonte())
+    sa = {"company": {"nature": {"id": 2054, "text": "Sociedade Anônima Fechada"}, "name": "EMPRESA FICTICIA SA"}}
+    dados = sanitizar(resposta_da_fonte(**sa), "11222333000181")
     assert dados.atualizado_em == date(2026, 11, 17)
     assert dados.empresa.model_dump(mode="json") == {
         "cnpj": "11222333000181",
-        "nome": "EMPRESA FICTICIA LTDA",
+        "nome": "EMPRESA FICTICIA SA",
         "situacao": "ATIVA",
         "cnae_principal": "4711-3/02",
         "porte": "ME",
@@ -81,7 +82,7 @@ def test_sanitizar_mantem_so_dados_da_empresa():
 
 
 def test_nenhum_dado_pessoal_sobra_depois_de_sanitizar():
-    texto = json.dumps(sanitizar(resposta_da_fonte()).model_dump(mode="json"), ensure_ascii=False)
+    texto = json.dumps(sanitizar(resposta_da_fonte(), "11222333000181").model_dump(mode="json"), ensure_ascii=False)
     for dado_pessoal in (PESSOA_FALSA, CPF_FALSO, EMAIL_FALSO, TELEFONE_FALSO, RUA_FALSA, "Sócio"):
         assert dado_pessoal not in texto
 
@@ -89,25 +90,44 @@ def test_nenhum_dado_pessoal_sobra_depois_de_sanitizar():
 @pytest.mark.parametrize(
     "mudanca",
     [
+        {"company": {"name": "FULANO DE TAL LTDA"}},  # LTDA (2062) may have a single owner
         {"company": {"simei": {"optant": True, "since": None, "history": []}}},
         {"company": {"nature": {"id": 2135, "text": "Empresário (Individual)"}}},
         {"company": {"nature": {"id": 2305, "text": "Empresa Individual de Responsabilidade Limitada"}}},
-        {"company": {"nature": {"id": 2321, "text": "Sociedade Unipessoal de Advocacia"}}},
+        {"company": {"nature": {"id": 4120, "text": "Produtor Rural (Pessoa Física)"}}},
+        {"company": {"nature": {"id": 2232, "text": "Sociedade Simples Pura"}}},
+        {"company": {"nature": {"id": 2054, "text": "Sociedade Anônima Fechada"}, "simei": {"optant": True}}},
     ],
 )
-def test_mei_e_empresario_individual_ficam_sem_nome(mudanca):
-    # The legal name of these companies usually carries the owner's name (docs/DADOS.md).
-    assert sanitizar(resposta_da_fonte(**mudanca)).empresa.nome is None
+def test_nome_fica_escondido_fora_das_naturezas_de_empresa_grande(mudanca):
+    # The legal name of these companies may carry the owner's name (docs/DADOS.md).
+    assert sanitizar(resposta_da_fonte(**mudanca), "11222333000181").empresa.nome is None
 
 
-def test_resposta_de_outro_cnpj_ou_incompleta_e_recusada():
-    with pytest.raises(ValueError):
-        sanitizar({"taxId": "11222333000181"})
+@pytest.mark.parametrize("natureza", [1015, 2011, 2038, 2046, 2054])
+def test_nome_aparece_para_sa_estatal_e_orgao_publico(natureza):
+    dados = sanitizar(resposta_da_fonte(company={"nature": {"id": natureza, "text": "x"}}), "11222333000181")
+    assert dados.empresa.nome == "EMPRESA FICTICIA LTDA"
+
+
+def test_resposta_de_outro_cnpj_e_recusada():
+    with pytest.raises(ValueError, match="outro CNPJ"):
+        sanitizar(resposta_da_fonte(), "00000000000191")
+
+
+@pytest.mark.parametrize(
+    "resposta",
+    [{"taxId": "11222333000181"}, resposta_da_fonte(founded="ontem"), resposta_da_fonte(mainActivity=None)],
+)
+def test_resposta_incompleta_e_recusada_sem_ecoar_valores(resposta):
+    with pytest.raises(ValueError) as erro:
+        sanitizar(resposta, "11222333000181")
+    assert str(erro.value) == "Resposta da fonte de CNPJ fora do formato esperado."
 
 
 def test_fixture_salva_e_carregada_sem_mudar(tmp_path, monkeypatch):
     monkeypatch.setattr(cnpj_publico, "PASTA_FIXTURES", tmp_path)
-    dados = sanitizar(resposta_da_fonte())
+    dados = sanitizar(resposta_da_fonte(), "11222333000181")
     cnpj_publico.salvar_fixture(dados)
     assert carregar_fixture("11222333000181") == dados
     assert carregar_fixture("00000000000191") is None

@@ -2,7 +2,9 @@
 
 Run from the repository root:  python scripts/gerar_fixture_empresa.py 00000000000191 [more CNPJs...]
 
-- Only company CNPJs from the demo list (docs/DADOS.md). Never a person's data.
+- Only large companies (corporations, state companies, public bodies) are saved: for any other
+  legal nature, or a MEI, the script refuses and saves nothing, because the CNPJ itself can point
+  to a person. Fictitious demo CNPJs do not come from the source.
 - The raw answer (partners, e-mails, phones, address) stays in memory and is dropped by `sanitizar`.
 - Waits 13 s between queries: the source allows 5 per minute per IP.
 """
@@ -25,11 +27,12 @@ def main(cnpjs: list[str]) -> int:
     for i, cnpj in enumerate(cnpjs):
         if i:
             time.sleep(PAUSA_S)
-        dados = sanitizar(baixar(cnpj, tempo_limite_s=10))
+        dados = sanitizar(baixar(cnpj, tempo_limite_s=10), cnpj)
+        if dados.empresa.nome is None:
+            print(f"{cnpj}: não salvo. Não é empresa grande (S.A., estatal ou órgão público).")
+            continue
         arquivo = salvar_fixture(dados)
-        print(
-            f"{cnpj}: salvo em {arquivo.relative_to(Path.cwd())} (dado de {dados.atualizado_em:%d/%m/%Y})"
-        )
+        print(f"{cnpj}: salvo em {arquivo} (dado de {dados.atualizado_em:%d/%m/%Y})")
     return 0
 
 

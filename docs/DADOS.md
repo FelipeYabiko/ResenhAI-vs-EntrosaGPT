@@ -37,7 +37,7 @@ Regulamento 6.9: a demo não pode expor dados pessoais reais de terceiros. Em fi
 | Campo no contrato | Campo da fonte | Observação |
 | --- | --- | --- |
 | `cnpj` | `taxId` | |
-| `nome` | `company.name` | `null` se `company.simei.optant` for verdadeiro ou se `company.nature.text` tiver "individual" ou "unipessoal" (a razão social costuma trazer o nome da pessoa) |
+| `nome` | `company.name` | Só aparece para administração pública (natureza `1xxx`), empresa pública (2011), sociedade de economia mista (2038) e S.A. (2046, 2054), e nunca para MEI. Em todo o resto, inclusive LTDA (que pode ter um dono só), vem `null`, porque a razão social pode trazer o nome da pessoa. O script de fixtures também se recusa a salvar esses CNPJs |
 | `situacao` | `status.text` | em maiúsculas, ex.: `ATIVA` |
 | `cnae_principal` | `mainActivity.id` | formatado: 6422100 vira `6422-1/00` |
 | `porte` | `company.size.acronym` | ex.: `ME`, `EPP`, `DEMAIS` |
