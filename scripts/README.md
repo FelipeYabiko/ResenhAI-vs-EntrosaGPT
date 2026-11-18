@@ -15,3 +15,7 @@ Roda lint (`ruff check`), formatação (`ruff format --check`) e testes (`pytest
 ## `gerar_fixture_empresa.py`
 
 Busca na fonte pública de CNPJ (open.cnpja.com) os dados de um ou mais CNPJs **de empresa** da lista de demonstração, tira tudo o que é pessoal (sócios, e-mails, telefones, endereço; nome de MEI) e salva em `fixtures/respostas_fontes/<cnpj>.json`. Rode da raiz: `python scripts/gerar_fixture_empresa.py 00000000000191`. Espera 13 s entre consultas, porque a fonte aceita 5 por minuto. A resposta crua nunca vai para disco nem para o terminal.
+
+## `gerar_cnpj_ficticio.py`
+
+Gera CNPJs fictícios com dígitos verificadores válidos e confere na fonte pública que **não existem** (um número válido qualquer pode ser de uma empresa real ou de um MEI, que é uma pessoa). Rode da raiz: `python scripts/gerar_cnpj_ficticio.py 3`. Espera 13 s entre consultas. Anote a data da checagem na lista da demo.

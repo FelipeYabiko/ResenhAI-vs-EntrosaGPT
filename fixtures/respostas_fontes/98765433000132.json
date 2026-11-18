@@ -1,0 +1,14 @@
+{
+  "fonte": "ficticio",
+  "atualizado_em": "2026-11-18",
+  "empresa": {
+    "cnpj": "98765433000132",
+    "nome": "SALÃO BELEZA PURA (FICTÍCIO)",
+    "situacao": "ATIVA",
+    "cnae_principal": "9602-5/01",
+    "porte": "ME",
+    "abertura": "2020-07-01",
+    "capital_social": 10000.0,
+    "municipio_uf": "Belo Horizonte/MG"
+  }
+}

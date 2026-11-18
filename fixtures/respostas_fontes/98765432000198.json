@@ -1,0 +1,14 @@
+{
+  "fonte": "ficticio",
+  "atualizado_em": "2026-11-18",
+  "empresa": {
+    "cnpj": "98765432000198",
+    "nome": "MERCADINHO BOA VISTA (FICTÍCIO)",
+    "situacao": "ATIVA",
+    "cnae_principal": "4712-1/00",
+    "porte": "ME",
+    "abertura": "2018-03-12",
+    "capital_social": 20000.0,
+    "municipio_uf": "São Paulo/SP"
+  }
+}

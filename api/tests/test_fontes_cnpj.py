@@ -20,7 +20,7 @@ RUA_FALSA = "RUA INVENTADA"
 def resposta_da_fonte(**mudancas) -> dict:
     resposta = {
         "updated": "2026-11-17T20:15:30.532Z",
-        "taxId": "11222333000181",
+        "taxId": "98765435000121",
         "alias": "NOME FANTASIA",
         "founded": "2010-03-15",
         "head": True,
@@ -67,10 +67,10 @@ def resposta_da_fonte(**mudancas) -> dict:
 
 def test_sanitizar_mantem_so_dados_da_empresa():
     sa = {"company": {"nature": {"id": 2054, "text": "Sociedade Anônima Fechada"}, "name": "EMPRESA FICTICIA SA"}}
-    dados = sanitizar(resposta_da_fonte(**sa), "11222333000181")
+    dados = sanitizar(resposta_da_fonte(**sa), "98765435000121")
     assert dados.atualizado_em == date(2026, 11, 17)
     assert dados.empresa.model_dump(mode="json") == {
-        "cnpj": "11222333000181",
+        "cnpj": "98765435000121",
         "nome": "EMPRESA FICTICIA SA",
         "situacao": "ATIVA",
         "cnae_principal": "4711-3/02",
@@ -82,7 +82,7 @@ def test_sanitizar_mantem_so_dados_da_empresa():
 
 
 def test_nenhum_dado_pessoal_sobra_depois_de_sanitizar():
-    texto = json.dumps(sanitizar(resposta_da_fonte(), "11222333000181").model_dump(mode="json"), ensure_ascii=False)
+    texto = json.dumps(sanitizar(resposta_da_fonte(), "98765435000121").model_dump(mode="json"), ensure_ascii=False)
     for dado_pessoal in (PESSOA_FALSA, CPF_FALSO, EMAIL_FALSO, TELEFONE_FALSO, RUA_FALSA, "Sócio"):
         assert dado_pessoal not in texto
 
@@ -101,12 +101,12 @@ def test_nenhum_dado_pessoal_sobra_depois_de_sanitizar():
 )
 def test_nome_fica_escondido_fora_das_naturezas_de_empresa_grande(mudanca):
     # The legal name of these companies may carry the owner's name (docs/DADOS.md).
-    assert sanitizar(resposta_da_fonte(**mudanca), "11222333000181").empresa.nome is None
+    assert sanitizar(resposta_da_fonte(**mudanca), "98765435000121").empresa.nome is None
 
 
 @pytest.mark.parametrize("natureza", [1015, 2011, 2038, 2046, 2054])
 def test_nome_aparece_para_sa_estatal_e_orgao_publico(natureza):
-    dados = sanitizar(resposta_da_fonte(company={"nature": {"id": natureza, "text": "x"}}), "11222333000181")
+    dados = sanitizar(resposta_da_fonte(company={"nature": {"id": natureza, "text": "x"}}), "98765435000121")
     assert dados.empresa.nome == "EMPRESA FICTICIA LTDA"
 
 
@@ -117,19 +117,19 @@ def test_resposta_de_outro_cnpj_e_recusada():
 
 @pytest.mark.parametrize(
     "resposta",
-    [{"taxId": "11222333000181"}, resposta_da_fonte(founded="ontem"), resposta_da_fonte(mainActivity=None)],
+    [{"taxId": "98765435000121"}, resposta_da_fonte(founded="ontem"), resposta_da_fonte(mainActivity=None)],
 )
 def test_resposta_incompleta_e_recusada_sem_ecoar_valores(resposta):
     with pytest.raises(ValueError) as erro:
-        sanitizar(resposta, "11222333000181")
+        sanitizar(resposta, "98765435000121")
     assert str(erro.value) == "Resposta da fonte de CNPJ fora do formato esperado."
 
 
 def test_fixture_salva_e_carregada_sem_mudar(tmp_path, monkeypatch):
     monkeypatch.setattr(cnpj_publico, "PASTA_FIXTURES", tmp_path)
-    dados = sanitizar(resposta_da_fonte(), "11222333000181")
+    dados = sanitizar(resposta_da_fonte(), "98765435000121")
     cnpj_publico.salvar_fixture(dados)
-    assert carregar_fixture("11222333000181") == dados
+    assert carregar_fixture("98765435000121") == dados
     assert carregar_fixture("00000000000191") is None
 
 

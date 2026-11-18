@@ -1,0 +1,14 @@
+{
+  "fonte": "ficticio",
+  "atualizado_em": "2026-11-18",
+  "empresa": {
+    "cnpj": "98765434000187",
+    "nome": "DEPÓSITO MATERIAL CENTRAL (FICTÍCIO)",
+    "situacao": "ATIVA",
+    "cnae_principal": "4744-0/99",
+    "porte": "EPP",
+    "abertura": "2012-05-20",
+    "capital_social": 150000.0,
+    "municipio_uf": "Recife/PE"
+  }
+}

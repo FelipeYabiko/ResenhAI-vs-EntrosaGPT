@@ -57,6 +57,7 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - No deploy, definir `CORS_ORIGENS` no Render com o endereço do site no Netlify (o padrão só libera `localhost:3000`). Propostas em memória somem quando o Render reinicia ou desliga a API por inatividade; aceitável na demo até existir o banco (#23, #26).
 - Imagens do site (17/11): as maquininhas azuis no fundo laranja e o mascote vêm do Figma da Amanda. Confirmar com ela a origem e a licença de cada imagem. Uma foto de maquininhas brancas do protótipo ficou fora por parecer produto real de marca.
 - Teto do faturamento na consulta (17/11): hoje a API aceita qualquer valor acima de zero. Definir um máximo no contrato (quem define: Kayke, junto com as premissas) e repetir no formulário.
+- Faixa de risco sobre empresas reais (18/11): a lista da demo tem 4 estatais com nome (BB, Caixa, Petrobras, Correios). A tela e o PDF mostrariam uma faixa de risco e um limite calculados por nós com o nome real da empresa, o que pode ser lido como avaliação de crédito de verdade. Proposta: no vídeo e no fluxo principal, usar só os 3 fictícios; as estatais servem para mostrar a consulta à fonte. Alternativas: aviso "não é avaliação desta empresa" ou não gerar proposta para elas. Decidir com o time.
 - CNPJ alfanumérico: a Receita Federal anunciou CNPJ com letras para inscrições novas a partir de julho de 2026 (não conferi a norma nem a regra do dígito). A validação de hoje (#14) aceita só 14 dígitos. Conferir no site da Receita e decidir se a demo precisa aceitar. Como a demo só aceita a lista de CNPJs de demonstração, o impacto é baixo (17/11).
 - Recurso "Taxas de desconto (MDR) e volumetria" do Banco Central: nome do endpoint, campos e periodicidade (T-19).
 - Taxas e faixas do catálogo de demonstração e premissas do simulador: quem define é o Kayke (T-05). São ilustrativas.
@@ -101,3 +102,4 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - 18/11: parte de dados da consulta (#16): limpeza da resposta da fonte de CNPJ e dados de demonstração gerados a partir dela. Ambiente da sessão liberado para `open.cnpja.com`.
 - 18/11: API das decisões da matriz (pendência, aprovação, recusa), cada uma publicada como evento em tempo real (SSE); contrato em PDF fica para o próximo passo.
 - 18/11: contrato simulado em PDF para proposta aprovada (RF-09).
+- 18/11: lista de CNPJs da demo (#15): 4 estatais conferidas na fonte e 3 fictícios (mercadinho, salão, loja) conferidos como inexistentes. Descoberto que o CNPJ de exemplo 11.222.333/0001-81 é de uma associação real; trocado nos testes.

@@ -7,19 +7,19 @@ from app.cnpj import cnpj_valido
 from app.main import _nao_implementado, app
 
 # 00000000000191 belongs to a large public company (allowed by docs/DADOS.md).
-# 11222333000181 is a fictitious number with valid check digits.
-VALIDOS = ["00000000000191", "11222333000181"]
+# 98765435000121 is fictitious: valid check digits, not found in the public source on 18/11/2026.
+VALIDOS = ["00000000000191", "98765435000121"]
 
 INVALIDOS = [
     "00000000000192",  # wrong second check digit
     "00000000000181",  # wrong first check digit
-    "11222333000180",
+    "98765435000120",
     "11111111111111",
     "00000000000000",  # passes the check digit formula, but is not a real CNPJ
-    "1122233300018",  # 13 digits
-    "112223330001811",  # 15 digits
-    "11.222.333/0001-81",  # mask must be removed by the front end
-    "1122233300018a",
+    "9876543500012",  # 13 digits
+    "987654350001211",  # 15 digits
+    "98.765.435/0001-21",  # mask must be removed by the front end
+    "9876543500012a",
     "",
 ]
 
@@ -52,7 +52,7 @@ def _consultar(cnpj: str):
 
 
 def test_consulta_com_digito_errado_devolve_cnpj_invalido():
-    resposta = _consultar("11222333000180")
+    resposta = _consultar("98765435000120")
     assert resposta.status_code == 422
     assert resposta.json()["erro"]["codigo"] == "cnpj_invalido"
 
@@ -60,7 +60,7 @@ def test_consulta_com_digito_errado_devolve_cnpj_invalido():
 def test_cnpj_invalido_e_recusado_antes_de_qualquer_outra_etapa(monkeypatch):
     chamadas = []
     monkeypatch.setattr("app.main._depois_da_validacao", _espiao(chamadas))
-    resposta = _consultar("11222333000180")
+    resposta = _consultar("98765435000120")
     assert resposta.status_code == 422
     assert chamadas == []
 
@@ -68,6 +68,6 @@ def test_cnpj_invalido_e_recusado_antes_de_qualquer_outra_etapa(monkeypatch):
 def test_cnpj_valido_segue_para_a_proxima_etapa(monkeypatch):
     chamadas = []
     monkeypatch.setattr("app.main._depois_da_validacao", _espiao(chamadas))
-    resposta = _consultar("11222333000181")
+    resposta = _consultar("98765435000121")
     assert len(chamadas) == 1
     assert resposta.status_code == 501

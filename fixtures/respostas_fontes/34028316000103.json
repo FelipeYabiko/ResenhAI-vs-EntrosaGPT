@@ -1,0 +1,14 @@
+{
+  "fonte": "cnpj_publico",
+  "atualizado_em": "2026-11-18",
+  "empresa": {
+    "cnpj": "34028316000103",
+    "nome": "EMPRESA BRASILEIRA DE CORREIOS E TELEGRAFOS",
+    "situacao": "ATIVA",
+    "cnae_principal": "5310-5/01",
+    "porte": "DEMAIS",
+    "abertura": "1970-02-13",
+    "capital_social": 3403457702.21,
+    "municipio_uf": "Brasília/DF"
+  }
+}
