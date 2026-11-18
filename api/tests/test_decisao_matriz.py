@@ -110,6 +110,7 @@ def test_cada_decisao_publica_um_evento(status, pendencias):
     assert decisao.tipo == f"proposta.{status}"
     assert decisao.proposta_id == proposta["proposta_id"]
     assert decisao.dados.faixa == "B"
+    assert decisao.dados.limite_credito_simulado == proposta["resumo"]["limite_credito_simulado"]
     assert decisao.aviso == "Simulação. Não é oferta de crédito."
 
 
@@ -126,3 +127,12 @@ def test_lista_filtra_pelo_status_novo():
     assert cliente.get("/v1/propostas?status=enviada").json()["propostas"] == []
     [aprovada] = cliente.get("/v1/propostas?status=aprovada").json()["propostas"]
     assert aprovada["proposta_id"] == proposta["proposta_id"]
+
+
+def test_pendente_pode_terminar_recusada_e_cada_pendencia_gera_evento():
+    proposta = _nova_proposta()
+    _mudar(proposta["proposta_id"], "pendente", [PENDENCIA])
+    _mudar(proposta["proposta_id"], "pendente", [{"descricao": "Confirmar o prazo de recebimento."}])
+    assert _mudar(proposta["proposta_id"], "recusada").json()["status"] == "recusada"
+    tipos = [e.tipo for e in memoria.eventos.historico()]
+    assert tipos == ["proposta.criada", "proposta.pendente", "proposta.pendente", "proposta.recusada"]

@@ -238,8 +238,8 @@ async def _vaga_para_ouvinte() -> None:
 async def eventos(
     last_event_id: str | None = Header(default=None), _: None = Depends(_vaga_para_ouvinte)
 ) -> AsyncIterable[ServerSentEvent]:
-    """Live proposal events for the back-office panel. New listeners get only new events;
-    a browser that reconnects sends Last-Event-ID and gets what it missed."""
+    # Live proposal events for the back-office panel. New listeners get only new events;
+    # a browser that reconnects sends Last-Event-ID and gets what it missed.
     if last_event_id is not None and not ID_EVENTO.fullmatch(last_event_id):
         last_event_id = None  # not one of our ids: treat as a new listener
     async for evento in memoria.eventos.assinar(depois_de=last_event_id):
