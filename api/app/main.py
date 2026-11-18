@@ -192,7 +192,8 @@ async def obter_proposta(proposta_id: str) -> Proposta:
     tags=["propostas"],
 )
 async def atualizar_proposta(proposta_id: str, entrada: PropostaAtualizacao) -> Proposta:
-    """Back office decision (RF-07, RF-08). aprovada and recusada are final."""
+    # Back office decision (RF-07, RF-08); aprovada and recusada are final.
+    # Keep no await between reading the status and saving: that is what makes two decisions safe.
     proposta = _proposta_ou_404(proposta_id)
     if proposta.status not in ("enviada", "pendente"):
         raise ErroApi(409, "transicao_invalida", f"A proposta já foi {proposta.status} e não pode mudar.")

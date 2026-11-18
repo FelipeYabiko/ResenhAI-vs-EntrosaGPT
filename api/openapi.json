@@ -258,7 +258,6 @@
           "propostas"
         ],
         "summary": "Atualizar Proposta",
-        "description": "Back office decision (RF-07, RF-08). aprovada and recusada are final.",
         "operationId": "atualizar_proposta_v1_propostas__proposta_id__patch",
         "parameters": [
           {
