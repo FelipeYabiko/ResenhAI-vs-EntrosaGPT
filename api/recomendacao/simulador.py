@@ -10,7 +10,7 @@ is shorter than the offer's. Callers pass offers and rates in; nothing is assume
 """
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
 from app.schemas import Economia
@@ -18,8 +18,10 @@ from app.schemas import Economia
 MODALIDADES = ("debito", "credito_a_vista", "credito_parcelado", "pix")
 CENTAVO = Decimal("0.01")
 CEM = Decimal(100)
+TOLERANCIA_MIX = Decimal("0.01")  # same tolerance as the API contract (app/schemas.py, Mix)
 
 Taxas = dict[str, Decimal | None]  # percent per payment type; None = not informed (never zero)
+# Callers converting floats from the API must use Decimal(str(x)): Decimal(33.33) is 33.3299999...
 
 
 class TaxaNaoInformada(ValueError):
@@ -27,7 +29,7 @@ class TaxaNaoInformada(ValueError):
 
 
 @dataclass(frozen=True)
-class SituacaoAtual:
+class CenarioAtual:
     taxas: Taxas
     custo_maquina_mensal: Decimal = Decimal(0)
     custo_saida: Decimal = Decimal(0)  # fine or machine already paid for, to leave the current provider
@@ -48,7 +50,6 @@ class ResultadoSimulacao:
     economia_mensal: Decimal
     economia_anual: Decimal
     meses_para_compensar_saida: int | None  # None: the offer never pays the exit cost back
-    estimado: bool = field(default=True)
 
     def para_contrato(self) -> Economia:
         return Economia(
@@ -66,7 +67,7 @@ def _validar(faturamento: Decimal, mix: dict[str, Decimal]) -> None:
         raise ValueError("O faturamento mensal precisa ser maior que zero.")
     if set(mix) != set(MODALIDADES):
         raise ValueError(f"O mix precisa ter exatamente: {', '.join(MODALIDADES)}.")
-    if any(parte < 0 for parte in mix.values()) or sum(mix.values()) != CEM:
+    if any(parte < 0 for parte in mix.values()) or abs(sum(mix.values()) - CEM) > TOLERANCIA_MIX:
         raise ValueError("O mix de pagamento precisa ter partes positivas que somam 100.")
 
 
@@ -82,7 +83,7 @@ def _custo_das_taxas(faturamento: Decimal, mix: dict[str, Decimal], taxas: Taxas
     return total
 
 
-def simular(faturamento: Decimal, mix: dict[str, Decimal], atual: SituacaoAtual, oferta: Oferta) -> ResultadoSimulacao:
+def simular(faturamento: Decimal, mix: dict[str, Decimal], atual: CenarioAtual, oferta: Oferta) -> ResultadoSimulacao:
     _validar(faturamento, mix)
     custo_atual = _custo_das_taxas(faturamento, mix, atual.taxas, "situação atual") + atual.custo_maquina_mensal
     custo_oferta = _custo_das_taxas(faturamento, mix, oferta.taxas, oferta.nome) + oferta.custo_maquina_mensal
@@ -109,7 +110,7 @@ def simular(faturamento: Decimal, mix: dict[str, Decimal], atual: SituacaoAtual,
 
 
 def comparar_ofertas(
-    faturamento: Decimal, mix: dict[str, Decimal], atual: SituacaoAtual, ofertas: list[Oferta]
+    faturamento: Decimal, mix: dict[str, Decimal], atual: CenarioAtual, ofertas: list[Oferta]
 ) -> list[ResultadoSimulacao]:
     """Every offer simulated, cheapest first (docs/ARQUITETURA.md: always show the cost of each one)."""
     return sorted((simular(faturamento, mix, atual, o) for o in ofertas), key=lambda r: r.custo_mensal_oferta)

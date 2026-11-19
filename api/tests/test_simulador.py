@@ -7,10 +7,10 @@ from decimal import Decimal as D
 
 import pytest
 
-from recomendacao.simulador import Oferta, SituacaoAtual, TaxaNaoInformada, comparar_ofertas, simular
+from recomendacao.simulador import CenarioAtual, Oferta, TaxaNaoInformada, comparar_ofertas, simular
 
 MIX_REFERENCIA = {"debito": D(40), "credito_a_vista": D(40), "credito_parcelado": D(0), "pix": D(20)}
-ATUAL_REFERENCIA = SituacaoAtual(
+ATUAL_REFERENCIA = CenarioAtual(
     taxas={"debito": D("1.99"), "credito_a_vista": D("4.98"), "credito_parcelado": None, "pix": D(0)}
 )
 OFERTA_REFERENCIA = Oferta(
@@ -31,7 +31,7 @@ def test_caso_de_referencia_do_rf11():
 def test_exemplo_da_landing_bate_com_o_simulador():
     # D-017: the landing shows R$ 350 -> R$ 240 (illustrative 3.5% -> 2.4% on R$ 10,000, single rate).
     so_credito = {"debito": D(0), "credito_a_vista": D(100), "credito_parcelado": D(0), "pix": D(0)}
-    atual = SituacaoAtual(taxas={"debito": None, "credito_a_vista": D("3.5"), "credito_parcelado": None, "pix": None})
+    atual = CenarioAtual(taxas={"debito": None, "credito_a_vista": D("3.5"), "credito_parcelado": None, "pix": None})
     oferta = Oferta(
         nome="x", taxas={"debito": None, "credito_a_vista": D("2.4"), "credito_parcelado": None, "pix": None}
     )
@@ -46,7 +46,7 @@ def test_mesma_entrada_mesma_saida():
 
 
 def test_custo_da_maquina_entra_no_custo_mensal():
-    atual = SituacaoAtual(taxas=ATUAL_REFERENCIA.taxas, custo_maquina_mensal=D("49.90"))
+    atual = CenarioAtual(taxas=ATUAL_REFERENCIA.taxas, custo_maquina_mensal=D("49.90"))
     oferta = Oferta(nome="x", taxas=OFERTA_REFERENCIA.taxas, custo_maquina_mensal=D("19.90"))
     r = simular(D(15000), MIX_REFERENCIA, atual, oferta)
     assert r.custo_mensal_atual == D("468.10")
@@ -60,7 +60,7 @@ def test_custo_da_maquina_entra_no_custo_mensal():
 )
 def test_custo_de_saida_diz_em_quantos_meses_se_paga(custo_saida, meses):
     # RF-12: rounded up, a partial month counts as one more month.
-    atual = SituacaoAtual(taxas=ATUAL_REFERENCIA.taxas, custo_saida=custo_saida)
+    atual = CenarioAtual(taxas=ATUAL_REFERENCIA.taxas, custo_saida=custo_saida)
     assert simular(D(15000), MIX_REFERENCIA, atual, OFERTA_REFERENCIA).meses_para_compensar_saida == meses
 
 
@@ -68,7 +68,7 @@ def test_oferta_mais_cara_mostra_economia_negativa_e_nunca_compensa():
     cara = Oferta(
         nome="cara", taxas={k: (v + D(1) if v is not None else None) for k, v in ATUAL_REFERENCIA.taxas.items()}
     )
-    atual = SituacaoAtual(taxas=ATUAL_REFERENCIA.taxas, custo_saida=D(100))
+    atual = CenarioAtual(taxas=ATUAL_REFERENCIA.taxas, custo_saida=D(100))
     r = simular(D(15000), MIX_REFERENCIA, atual, cara)
     assert r.economia_mensal < 0
     assert r.meses_para_compensar_saida is None
@@ -78,7 +78,7 @@ def test_oferta_mais_cara_mostra_economia_negativa_e_nunca_compensa():
 def test_taxa_nao_informada_de_modalidade_usada_nao_vira_zero(lado):
     # docs/DADOS.md: never assume Pix (or any rate) is zero.
     sem_pix = {**ATUAL_REFERENCIA.taxas, "pix": None}
-    atual = SituacaoAtual(taxas=sem_pix) if lado == "atual" else ATUAL_REFERENCIA
+    atual = CenarioAtual(taxas=sem_pix) if lado == "atual" else ATUAL_REFERENCIA
     oferta = Oferta(nome="x", taxas=sem_pix) if lado == "oferta" else OFERTA_REFERENCIA
     with pytest.raises(TaxaNaoInformada, match="pix"):
         simular(D(15000), MIX_REFERENCIA, atual, oferta)
@@ -126,3 +126,21 @@ def test_resultado_vira_o_formato_do_contrato():
         "meses_para_compensar_saida": 0,
         "estimado": True,
     }
+
+
+def test_mix_com_casas_decimais_aceito_como_no_contrato():
+    # The API accepts a mix that adds up to 100 within 0.01 (app/schemas.py); the simulator must too.
+    terco = D("33.333")
+    mix = {"debito": terco, "credito_a_vista": terco, "credito_parcelado": D(0), "pix": terco}
+    taxas = {"debito": D(1), "credito_a_vista": D(1), "credito_parcelado": None, "pix": D(1)}
+    r = simular(D(15000), mix, CenarioAtual(taxas=taxas), Oferta(nome="x", taxas=taxas))
+    assert r.economia_mensal == D("0.00")
+
+
+@pytest.mark.parametrize(("custo_saida", "meses"), [(D(0), 0), (D(100), None)])
+def test_economia_zero(custo_saida, meses):
+    mesma = Oferta(nome="igual", taxas=ATUAL_REFERENCIA.taxas | {"credito_parcelado": D(1)})
+    atual = CenarioAtual(taxas=ATUAL_REFERENCIA.taxas, custo_saida=custo_saida)
+    r = simular(D(15000), MIX_REFERENCIA, atual, mesma)
+    assert r.economia_mensal == D("0.00")
+    assert r.meses_para_compensar_saida == meses
