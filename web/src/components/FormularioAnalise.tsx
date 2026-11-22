@@ -1,23 +1,28 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useId, useRef, useState, type FormEvent } from "react";
-import { consultar, type ConsultaResultado } from "@/lib/api";
+import { consultar } from "@/lib/api";
 import { cnpjValido, mascararCnpj, soDigitos } from "@/lib/cnpj";
-import { formatarReais, lerReais } from "@/lib/formato";
+import { salvarConsulta } from "@/lib/consulta-salva";
+import { lerReais } from "@/lib/formato";
+import { mensagemDeFalha } from "@/lib/mensagens";
 import estilos from "./FormularioAnalise.module.css";
 
 type Erros = { cnpj?: string; faturamento?: string };
 type Situacao =
   | { tipo: "ocioso" }
   | { tipo: "enviando" }
-  | { tipo: "resultado"; resultado: ConsultaResultado }
-  | { tipo: "aviso"; mensagem: string };
+  | { tipo: "abrindo_resultado" }
+  | { tipo: "aviso"; mensagem: string; comExemplo?: boolean };
 
 const MENSAGEM_EM_CONSTRUCAO =
   "O CNPJ está certo. A análise completa ainda está em construção: por enquanto o servidor só confere o CNPJ.";
 
 export function FormularioAnalise() {
   const id = useId();
+  const router = useRouter();
   const [cnpj, setCnpj] = useState("");
   const [faturamento, setFaturamento] = useState("");
   const [erros, setErros] = useState<Erros>({});
@@ -41,35 +46,27 @@ export function FormularioAnalise() {
     setSituacao({ tipo: "enviando" });
     const resposta = await consultar({ cnpj: soDigitos(cnpj), perfil_vendas: { faturamento_mensal: valor! } });
 
-    if (resposta.tipo === "ok") return setSituacao({ tipo: "resultado", resultado: resposta.resultado });
-    if (resposta.tipo === "demorou") {
-      return setSituacao({
-        tipo: "aviso",
-        mensagem: "O servidor demorou demais para responder. Ele pode estar ligando; tente de novo em instantes.",
-      });
+    if (resposta.tipo === "ok") {
+      salvarConsulta(resposta.resultado);
+      setSituacao({ tipo: "abrindo_resultado" });
+      return router.push("/resultado");
     }
-    if (resposta.tipo === "falha_servidor") {
-      return setSituacao({
-        tipo: "aviso",
-        mensagem: "O servidor não respondeu como esperado. Tente de novo em alguns segundos.",
-      });
-    }
-    if (resposta.tipo === "sem_conexao") {
-      return setSituacao({
-        tipo: "aviso",
-        mensagem: "Não foi possível falar com o servidor. Confira a conexão e tente de novo.",
-      });
-    }
+    const falha = mensagemDeFalha(resposta);
+    if (falha) return setSituacao({ tipo: "aviso", mensagem: falha });
+    if (resposta.tipo !== "erro") return;
     const { codigo, mensagem } = resposta.erro;
     if (codigo === "cnpj_invalido" || codigo === "cnpj_fora_da_demo") {
       setSituacao({ tipo: "ocioso" });
       setErros({ cnpj: mensagem });
       return campoCnpj.current?.focus();
     }
-    setSituacao({ tipo: "aviso", mensagem: codigo === "nao_implementado" ? MENSAGEM_EM_CONSTRUCAO : mensagem });
+    if (codigo === "nao_implementado") {
+      return setSituacao({ tipo: "aviso", mensagem: MENSAGEM_EM_CONSTRUCAO, comExemplo: true });
+    }
+    setSituacao({ tipo: "aviso", mensagem });
   }
 
-  const enviando = situacao.tipo === "enviando";
+  const enviando = situacao.tipo === "enviando" || situacao.tipo === "abrindo_resultado";
 
   return (
     <form className={estilos.formulario} onSubmit={enviar} noValidate aria-describedby={`${id}-demo`}>
@@ -136,25 +133,14 @@ export function FormularioAnalise() {
 
       <div className={estilos.retorno} role="status" aria-live="polite">
         {situacao.tipo === "enviando" && <p>Analisando o CNPJ… Na primeira consulta do dia pode levar até um minuto.</p>}
-        {situacao.tipo === "aviso" && <p className={estilos.aviso}>{situacao.mensagem}</p>}
-        {situacao.tipo === "resultado" && <Resumo resultado={situacao.resultado} />}
+        {situacao.tipo === "abrindo_resultado" && <p>Análise pronta. Abrindo o resultado…</p>}
+        {situacao.tipo === "aviso" && (
+          <p className={estilos.aviso}>
+            {situacao.mensagem}{" "}
+            {situacao.comExemplo && <Link href="/resultado?exemplo">Ver um exemplo ilustrativo do resultado</Link>}
+          </p>
+        )}
       </div>
     </form>
-  );
-}
-
-function Resumo({ resultado }: { resultado: ConsultaResultado }) {
-  const { pontuacao, recomendacao, economia, aviso } = resultado;
-  return (
-    <div className={estilos.resumo}>
-      <h3>Resultado da análise</h3>
-      <ul>
-        <li>Faixa de risco: {pontuacao.faixa}</li>
-        <li>Máquina indicada: {recomendacao.maquina.modelo}</li>
-        <li>Limite de crédito simulado: {formatarReais(recomendacao.limite_credito_simulado)}</li>
-        {economia && <li>Economia estimada: {formatarReais(economia.economia_mensal)} por mês</li>}
-      </ul>
-      <p className={estilos.aviso}>{aviso}</p>
-    </div>
   );
 }

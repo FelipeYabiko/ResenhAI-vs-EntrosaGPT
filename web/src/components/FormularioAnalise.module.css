@@ -32,7 +32,8 @@
   font-weight: 600;
 }
 
-.campo input {
+.campo input,
+.campo textarea {
   width: 100%;
   min-height: 48px;
   padding: 10px 14px;
@@ -43,7 +44,8 @@
   font: inherit;
 }
 
-.campo input[aria-invalid="true"] {
+.campo input[aria-invalid="true"],
+.campo textarea[aria-invalid="true"] {
   border-width: 3px;
   border-style: dashed;
 }
@@ -94,18 +96,4 @@
 
 .aviso {
   font-weight: 600;
-}
-
-.resumo {
-  display: grid;
-  gap: 8px;
-}
-
-.resumo h3 {
-  font-size: 1.25rem;
-}
-
-.resumo ul {
-  margin: 0;
-  padding-left: 20px;
 }

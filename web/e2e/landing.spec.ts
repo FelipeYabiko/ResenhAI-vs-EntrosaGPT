@@ -60,7 +60,16 @@ test("o campo coloca a máscara do CNPJ e envia só os dígitos", async ({ page 
 test("resultado da API aparece com o aviso de simulação", async ({ page }) => {
   await simularApi(page, 200, {
     consulta_id: "c_01",
-    empresa: {},
+    empresa: {
+      cnpj: "98765435000121",
+      nome: null,
+      situacao: "ATIVA",
+      cnae_principal: "0000-0/00",
+      porte: "ME",
+      abertura: "2020-01-01",
+      capital_social: 0,
+      municipio_uf: "Cidade/UF",
+    },
     fontes: [],
     pontuacao: { faixa: "B", pontos: 72, fatores: [] },
     recomendacao: {
@@ -78,11 +87,13 @@ test("resultado da API aparece com o aviso de simulação", async ({ page }) => 
   await page.getByLabel("Faturamento mensal estimado").fill("10000");
   await page.getByRole("button", { name: "Analisar" }).click();
 
-  const retorno = page.getByRole("status");
-  await expect(retorno).toContainText("Faixa de risco: B");
-  await expect(retorno).toContainText("R$ 50.000,00");
-  await expect(retorno).toContainText("Simulação. Não é oferta de crédito.");
-  await expect(retorno).not.toContainText("Economia");
+  // Since issue #22 the result opens on its own page (/resultado), not inside the form.
+  await expect(page).toHaveURL(/\/resultado$/);
+  const resultado = page.getByRole("main");
+  await expect(resultado).toContainText("Faixa B");
+  await expect(resultado).toContainText("R$ 50.000,00");
+  await expect(resultado).toContainText("Simulação. Não é oferta de crédito.");
+  await expect(resultado).toContainText("Nenhuma economia foi estimada");
 });
 
 test("sem servidor, a mensagem diz isso em vez de inventar resultado", async ({ page }) => {

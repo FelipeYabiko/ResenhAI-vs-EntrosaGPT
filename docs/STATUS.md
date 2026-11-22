@@ -104,3 +104,4 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - 18/11: contrato simulado em PDF para proposta aprovada (RF-09).
 - 18/11: lista de CNPJs da demo (#15): 4 estatais conferidas na fonte e 3 fictícios (mercadinho, salão, loja) conferidos como inexistentes. Descoberto que o CNPJ de exemplo 11.222.333/0001-81 é de uma associação real; trocado nos testes.
 - 19/11: núcleo do simulador de economia (#18), com o caso de referência do RF-11 e o exemplo da landing conferidos em teste. Catálogo, taxa do Pix e antecipação continuam com o Kayke.
+- 22/11: tela de resultado do agente (#22), sem o visual do Figma por enquanto: economia, faixa de risco com fatores, recomendação, empresa, fontes e envio da proposta à matriz. Enquanto a consulta não fica pronta (#16), há um exemplo ilustrativo em `/resultado?exemplo`, marcado como tal e sem envio de proposta. Pergunta para o Kayke (T-05): a faixa A é o menor ou o maior risco? A tela só diz "escala de A a E" até isso ser definido.

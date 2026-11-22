@@ -21,3 +21,16 @@ export function lerReais(texto: string): number | null {
   else if (/^\d+\.\d{1,2}$/.test(t)) normal = t; // 10000.50
   return normal === null ? null : Number(normal);
 }
+
+/** "2026-11-18" -> "18/11/2026". Reads the text directly, so the day never shifts with the time zone. */
+export function formatarData(iso: string): string {
+  const [ano, mes, dia] = iso.slice(0, 10).split("-");
+  return ano && mes && dia ? `${dia}/${mes}/${ano}` : iso;
+}
+
+const percentual = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
+
+/** 1.99 -> "1,99%" (the API sends percentages as numbers: 40 means 40%). */
+export function formatarPercentual(valor: number): string {
+  return `${percentual.format(valor)}%`;
+}
