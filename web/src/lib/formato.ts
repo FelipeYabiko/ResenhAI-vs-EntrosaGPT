@@ -34,3 +34,11 @@ const percentual = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
 export function formatarPercentual(valor: number): string {
   return `${percentual.format(valor)}%`;
 }
+
+const dataHora = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });
+
+/** "2026-11-12T14:03:00Z" -> "12/11/2026, 11:03" (in the viewer's time zone). */
+export function formatarDataHora(iso: string): string {
+  const data = new Date(iso);
+  return Number.isNaN(data.getTime()) ? iso : dataHora.format(data);
+}

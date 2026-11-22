@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { FormularioAnalise } from "@/components/FormularioAnalise";
 import { InterruptorMovimento } from "@/components/InterruptorMovimento";
 import { EXEMPLOS } from "@/lib/exemplos";
@@ -209,6 +210,9 @@ export default function Inicio() {
               </li>
               <li>
                 <a href="#analise">Fazer uma análise</a>
+              </li>
+              <li>
+                <Link href="/matriz">Painel da matriz (demonstração)</Link>
               </li>
             </ul>
           </nav>

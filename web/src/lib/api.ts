@@ -6,9 +6,12 @@ export type ConsultaEntrada = components["schemas"]["ConsultaEntrada"];
 export type ConsultaResultado = components["schemas"]["ConsultaResultado"];
 export type PropostaEntrada = components["schemas"]["PropostaEntrada"];
 export type Proposta = components["schemas"]["Proposta"];
+export type PropostaAtualizacao = components["schemas"]["PropostaAtualizacao"];
+export type ListaPropostas = components["schemas"]["ListaPropostas"];
+export type Evento = components["schemas"]["Evento"];
 export type ErroApi = components["schemas"]["Erro"]["erro"];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 // The free API host sleeps when idle and takes up to about a minute to wake up.
 const TEMPO_LIMITE_MS = 60_000;
 
@@ -23,7 +26,8 @@ export type Resposta<T> =
 export type RespostaConsulta = Resposta<ConsultaResultado>;
 export type RespostaProposta = Resposta<Proposta>;
 
-async function postar<T>(
+async function chamar<T>(
+  metodo: "GET" | "POST" | "PATCH",
   caminho: string,
   entrada: unknown,
   pareceValido: (corpo: Corpo) => boolean,
@@ -31,9 +35,9 @@ async function postar<T>(
   let resposta: Response;
   try {
     resposta = await fetch(`${API_URL}${caminho}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(entrada),
+      method: metodo,
+      headers: entrada === undefined ? undefined : { "Content-Type": "application/json" },
+      body: entrada === undefined ? undefined : JSON.stringify(entrada),
       signal: AbortSignal.timeout(TEMPO_LIMITE_MS),
     });
   } catch (erro) {
@@ -68,9 +72,41 @@ export function pareceConsulta(corpo: unknown): corpo is ConsultaResultado {
 }
 
 export function consultar(entrada: ConsultaEntrada): Promise<RespostaConsulta> {
-  return postar("/v1/consultas", entrada, pareceConsulta);
+  return chamar("POST", "/v1/consultas", entrada, pareceConsulta);
 }
 
 export function enviarProposta(entrada: PropostaEntrada): Promise<RespostaProposta> {
-  return postar("/v1/propostas", entrada, (c: Corpo) => typeof c?.proposta_id === "string");
+  return chamar("POST", "/v1/propostas", entrada, (c: Corpo) => typeof c?.proposta_id === "string");
+}
+
+// The panel shows the summary, status and pendencies, so it needs all three.
+const pareceProposta = (c: Corpo) =>
+  typeof c?.proposta_id === "string" && typeof c?.status === "string" && Boolean(c?.resumo) && Array.isArray(c?.pendencias);
+
+function pareceListaDePropostas(c: Corpo): boolean {
+  return Array.isArray(c?.propostas) && (c.propostas as Corpo[]).every(pareceProposta);
+}
+
+// --- Back office (painel da matriz) ---
+
+export function listarPropostas(): Promise<Resposta<ListaPropostas>> {
+  return chamar("GET", "/v1/propostas", undefined, pareceListaDePropostas);
+}
+
+export function obterProposta(propostaId: string): Promise<RespostaProposta> {
+  return chamar("GET", `/v1/propostas/${encodeURIComponent(propostaId)}`, undefined, pareceProposta);
+}
+
+export function decidirProposta(propostaId: string, entrada: PropostaAtualizacao): Promise<RespostaProposta> {
+  return chamar("PATCH", `/v1/propostas/${encodeURIComponent(propostaId)}`, entrada, pareceProposta);
+}
+
+/** Address of the simulated contract PDF. The API answers it only for approved proposals (RF-09). */
+export function enderecoDoContrato(propostaId: string): string {
+  return `${API_URL}/v1/propostas/${encodeURIComponent(propostaId)}/contrato`;
+}
+
+/** Live events (SSE). The browser reconnects by itself and sends Last-Event-ID. */
+export function ouvirEventos(): EventSource {
+  return new EventSource(`${API_URL}/v1/eventos`);
 }
