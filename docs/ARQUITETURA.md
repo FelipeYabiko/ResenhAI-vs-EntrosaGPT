@@ -271,7 +271,9 @@ Só guardamos dados públicos de empresa já sanitizados (ver `docs/DADOS.md`). 
 
 ## Simulador de custo (proposta, vem do RFC do Comparador)
 
-- Função pura em `api/recomendacao/`, sem rede, sem banco e sem LLM. Mesma entrada, mesma saída.
+- Função pura em `api/recomendacao/simulador.py` (`simular`, `comparar_ofertas`), sem rede, sem banco e sem LLM. Mesma entrada, mesma saída. Contas com decimais exatos, arredondadas para centavos no fim.
+- Taxa ausente (`null`) numa forma de pagamento que tem vendas no mix faz a simulação parar com erro (`TaxaNaoInformada`). Nunca vira zero.
+- Ainda em aberto (Kayke, #18): catálogo de ofertas da demo, taxa do Pix de cada oferta e custo de antecipação. O núcleo recebe as ofertas como entrada e não assume nenhum desses valores. O custo de antecipação ainda não entra na conta.
 - Custo mensal de uma oferta = soma, para cada forma de pagamento, de faturamento × participação no mix × taxa; mais o custo mensal da máquina (compra dividida em 12 meses, ou aluguel); mais o custo de antecipação, quando o prazo desejado for menor que o padrão da oferta.
 - Pix entra com a taxa informada ou a do catálogo. Não assuma taxa zero: confira.
 - Economia = custo atual menos custo com a oferta. Se houver custo de saída, mostrar em quantos meses a economia o compensa.
