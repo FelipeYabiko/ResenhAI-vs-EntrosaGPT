@@ -4,10 +4,12 @@ This module declares the contract routes. Routes that are not built yet
 answer 501 with the standard error body; each one points to its issue.
 """
 
+import http.client
 import os
 import re
+import time
 from collections.abc import AsyncIterable
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from uuid import uuid4
 
 from fastapi import Depends, FastAPI, Header, Request
@@ -18,6 +20,7 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 
 from app.cnpj import cnpj_valido
+from app.consulta import montar_resultado
 from app.contrato_pdf import gerar_contrato_pdf
 from app.memoria import memoria
 from app.schemas import (
@@ -25,8 +28,10 @@ from app.schemas import (
     ConsultaEntrada,
     ConsultaResultado,
     DadosEvento,
+    Empresa,
     Erro,
     Evento,
+    Fonte,
     ListaPropostas,
     Pendencia,
     Proposta,
@@ -36,6 +41,9 @@ from app.schemas import (
     Saude,
     StatusProposta,
 )
+from fontes.cnpj_publico import baixar, carregar_fixture, sanitizar
+from fontes.demo import CnpjDemo, cnpjs_da_demo
+from scoring.premissas import PremissasInvalidas, PremissasPendentes, carregar_premissas
 
 app = FastAPI(
     title="CredFácil API",
@@ -82,7 +90,7 @@ def _erros(*status: int) -> dict:
 
 @app.get("/v1/saude", response_model=Saude, tags=["saude"])
 def saude() -> Saude:
-    return Saude(status="ok", modo_demo=os.getenv("MODO_DEMO", "true").lower() == "true")
+    return Saude(status="ok", modo_demo=_modo_demo())
 
 
 @app.post(
@@ -98,9 +106,50 @@ def criar_consulta(entrada: ConsultaEntrada) -> ConsultaResultado:
     return _depois_da_validacao(entrada)
 
 
+def _modo_demo() -> bool:
+    return os.getenv("MODO_DEMO", "true").lower() == "true"
+
+
+def _dados_da_empresa(cnpj: str, item_demo: CnpjDemo | None) -> tuple[Empresa, Fonte]:
+    """Company data: fixture for demo CNPJs (fictitious ones NEVER go to the source), live source otherwise."""
+    salvo = carregar_fixture(cnpj) if item_demo else None
+    if item_demo and item_demo.origem == "ficticio":
+        if salvo is None:
+            raise ErroApi(502, "fonte_indisponivel", "Dados da empresa fictícia não encontrados.")
+        fonte = Fonte(nome="dados_ficticios", status="ok", atualizado_em=salvo.atualizado_em, em_cache=False)
+        return salvo.empresa, fonte
+    if salvo is not None:
+        return salvo.empresa, Fonte(nome="cnpj_publico", status="ok", atualizado_em=salvo.atualizado_em, em_cache=True)
+    try:
+        dados = sanitizar(baixar(cnpj), cnpj)
+    except (OSError, http.client.HTTPException, ValueError):  # URLError and timeouts are OSError too
+        raise ErroApi(502, "fonte_indisponivel", "Não foi possível consultar a fonte pública de CNPJ agora.") from None
+    return dados.empresa, Fonte(nome="cnpj_publico", status="ok", atualizado_em=dados.atualizado_em, em_cache=False)
+
+
 def _depois_da_validacao(entrada: ConsultaEntrada) -> ConsultaResultado:
-    """Next step of the query (sources, scoring, simulation). Tests swap it to prove validation runs first."""
-    raise _nao_implementado()  # built in issue #16
+    """Rest of the query (demo list, premises, company data, result). Tests swap it to prove validation runs first."""
+    inicio = time.perf_counter()
+    item_demo = cnpjs_da_demo().get(entrada.cnpj)
+    if _modo_demo() and item_demo is None:
+        raise ErroApi(
+            422, "cnpj_fora_da_demo", "Na demonstração, só os CNPJs da lista de exemplo podem ser consultados."
+        )
+    try:
+        premissas = carregar_premissas()
+    except PremissasPendentes:
+        raise ErroApi(
+            501,
+            "nao_implementado",
+            "A análise completa aguarda a aprovação das premissas do time (pontuação e catálogo).",
+        ) from None
+    except PremissasInvalidas as erro:
+        raise ErroApi(501, "nao_implementado", f"As premissas do time precisam de correção. {erro}") from None
+    empresa, fonte = _dados_da_empresa(entrada.cnpj, item_demo)
+    tempo_ms = round((time.perf_counter() - inicio) * 1000)
+    resultado = montar_resultado(entrada, empresa, [fonte], premissas, date.today(), tempo_ms)
+    memoria.consultas[resultado.consulta_id] = resultado  # so a proposal can be created from it (#23)
+    return resultado
 
 
 ID_EVENTO = re.compile(r"e_[0-9a-f]{12}")

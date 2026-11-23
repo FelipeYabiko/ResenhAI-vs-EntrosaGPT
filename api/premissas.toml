@@ -1,0 +1,67 @@
+# CredFácil: premissas do time (pontuação, limite, antecipação e catálogo da demo).
+#
+# STATUS: PROPOSTA. A API só usa este arquivo depois que o time trocar para status = "aprovada".
+# Dono: Kayke (T-05, issues #17, #18 e #19). Proposta inicial do Felipe, 23/11/2026, para destravar a demo.
+#
+# Estes números são PREMISSAS DO TIME, não estatística. Não há dado real de inadimplência para
+# validar nenhum deles (docs/PRODUTO.md, D-003). Diga isso no README e no vídeo.
+# Mudou algum número? Rode `python scripts/verificar.py` e registre o motivo no comentário.
+
+status = "proposta"
+
+[pontuacao]
+# Ponto de partida de toda empresa ativa. As regras abaixo somam ou subtraem; o total fica entre 0 e 100.
+pontos_base = 50
+
+# Pontos mínimos de cada faixa. Abaixo de D é E.
+# Proposta: A é o MENOR risco e E o maior, como nas escalas de rating mais comuns. Pergunta aberta (STATUS, T-05).
+faixas = { A = 75, B = 60, C = 45, D = 30 }
+
+# Tempo de atividade (anos completos desde a abertura). Vale a linha de maior anos_min que a empresa alcança.
+# Ideia: negócio muito novo tem menos histórico; quanto mais tempo aberto, mais estável.
+[[pontuacao.tempo_de_atividade]]
+anos_min = 0
+pontos = -15
+explicacao = "Menos de 1 ano de atividade"
+
+[[pontuacao.tempo_de_atividade]]
+anos_min = 1
+pontos = 0
+explicacao = "De 1 a 3 anos de atividade"
+
+[[pontuacao.tempo_de_atividade]]
+anos_min = 3
+pontos = 10
+explicacao = "De 3 a 10 anos de atividade"
+
+[[pontuacao.tempo_de_atividade]]
+anos_min = 10
+pontos = 20
+explicacao = "Mais de 10 anos de atividade"
+
+# Porte do cadastro (campo da fonte pública). Porte sem regra aqui não pesa (0) e a tela diz isso.
+# Ideia: porte maior costuma ter mais estrutura. Peso pequeno de propósito.
+[pontuacao.porte]
+ME = 0
+EPP = 5
+DEMAIS = 10
+
+[recomendacao]
+# Limite de crédito simulado = faturamento mensal informado x múltiplo da faixa (docs/ARQUITETURA.md).
+# E = 0: sem limite.
+multiplo_limite = { A = 3.0, B = 2.0, C = 1.0, D = 0.5, E = 0.0 }
+
+# Taxa de antecipação simulada (% ao mês) = base + prêmio da faixa (docs/ARQUITETURA.md).
+# Valores ilustrativos de demonstração: não são taxa de nenhum provedor real.
+antecipacao_base_mensal = 1.5
+antecipacao_premio_mensal = { A = 0.0, B = 0.3, C = 0.6, D = 1.0, E = 1.5 }
+
+# Catálogo da demo: FICTÍCIO, sem marca real (D-016). Uma máquina só, com as taxas da oferta do caso de
+# referência do RF-11 (docs/PRODUTO.md): 0,99% débito, 3,15% crédito à vista, Pix sem taxa.
+# A taxa de parcelado não está no RF-11: fica sem valor, e quem vende parcelado não recebe simulação de economia
+# até o time definir (o simulador nunca trata taxa ausente como zero).
+[[catalogo]]
+modelo = "Plus"
+motivo = "Máquina do catálogo de demonstração (oferta de referência do projeto)"
+custo_maquina_mensal = 0.0
+taxas = { debito = 0.99, credito_a_vista = 3.15, pix = 0.0 }

@@ -12,6 +12,7 @@ type Economia = NonNullable<ConsultaResultado["economia"]>;
 
 const NOMES_DAS_FONTES: Record<string, string> = {
   cnpj_publico: "Dados públicos do CNPJ",
+  dados_ficticios: "Empresa fictícia da demonstração (dados inventados)",
   bcb_inadimplencia_pj: "Banco Central: inadimplência de empresas",
 };
 

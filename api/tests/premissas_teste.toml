@@ -1,0 +1,37 @@
+# Premises used only by the tests. Small round numbers so each rule is easy to check by hand.
+status = "aprovada"
+
+[pontuacao]
+pontos_base = 50
+faixas = { A = 75, B = 60, C = 45, D = 30 }   # minimum points; below D is E
+
+[[pontuacao.tempo_de_atividade]]
+anos_min = 0
+pontos = -15
+explicacao = "Menos de 1 ano de atividade"
+
+[[pontuacao.tempo_de_atividade]]
+anos_min = 1
+pontos = 0
+explicacao = "De 1 a 5 anos de atividade"
+
+[[pontuacao.tempo_de_atividade]]
+anos_min = 5
+pontos = 15
+explicacao = "Mais de 5 anos de atividade"
+
+[pontuacao.porte]
+ME = 0
+EPP = 5
+DEMAIS = 10
+
+[recomendacao]
+multiplo_limite = { A = 3.0, B = 2.0, C = 1.0, D = 0.5, E = 0.0 }
+antecipacao_base_mensal = 1.5
+antecipacao_premio_mensal = { A = 0.0, B = 0.3, C = 0.6, D = 1.0, E = 1.5 }
+
+[[catalogo]]
+modelo = "Plus"
+motivo = "Oferta de referência do RF-11"
+custo_maquina_mensal = 0.0
+taxas = { debito = 0.99, credito_a_vista = 3.15, credito_parcelado = 9.9, pix = 0.0 }
