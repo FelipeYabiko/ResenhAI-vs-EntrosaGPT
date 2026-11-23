@@ -116,3 +116,26 @@ test("só com teclado: abrir, preencher o exemplo e enviar", async ({ page, isMo
   await expect(page.getByRole("status").first()).toContainText("construção");
   expect(corpos).toHaveLength(1);
 });
+
+
+test("só taxas digitadas não somem: pede o mix", async ({ page }) => {
+  const corpos = await capturarConsultas(page);
+  await page.goto("/");
+  await page.getByLabel("CNPJ").fill("98765432000198");
+  await page.getByLabel("Faturamento mensal estimado").fill("10000");
+  await abrirPerfil(page);
+  await page.getByLabel("Débito: taxa que paga hoje (%)").fill("1,99");
+  await page.getByRole("button", { name: "Analisar" }).click();
+  await expect(page.locator("form").getByRole("alert")).toContainText("somar 100%");
+  for (const nome of ["Débito", "Crédito à vista", "Crédito parcelado", "Pix"]) {
+    await expect(page.getByLabel(`${nome}: parte das vendas (%)`)).toHaveAttribute("aria-invalid", "true");
+  }
+  expect(corpos).toHaveLength(0);
+});
+
+test("o exemplo preenchido é anunciado", async ({ page }) => {
+  await page.goto("/");
+  await abrirPerfil(page);
+  await page.getByRole("button", { name: /Preencher com o exemplo do mercadinho/ }).click();
+  await expect(page.locator("form").getByRole("status")).toContainText("Exemplo fictício do mercadinho preenchido");
+});

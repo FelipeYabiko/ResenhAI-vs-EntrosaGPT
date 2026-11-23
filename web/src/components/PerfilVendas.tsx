@@ -5,6 +5,7 @@ import {
   campoDoMix,
   MODALIDADES,
   somaDoMix,
+  somaFechaCem,
   type ErroPerfil,
   type Modalidade,
   type PerfilDigitado,
@@ -28,7 +29,7 @@ export function PerfilVendas({ idBase, perfil, aoMudar, erro, aberto, aoAbrir, a
   const soma = somaDoMix(perfil);
 
   function campo(nome: string, rotulo: string, valor: string, mudar: (v: string) => void, dica?: string) {
-    const comErro = erro?.campo === nome;
+    const comErro = erro?.campo === nome || (erro?.grupo === "mix" && nome.startsWith("mix-"));
     return (
       <div className={estilos.campo}>
         <label htmlFor={id(nome)}>{rotulo}</label>
@@ -69,7 +70,7 @@ export function PerfilVendas({ idBase, perfil, aoMudar, erro, aberto, aoAbrir, a
           </div>
           <p id={id("soma")} className={estilos.soma}>
             {soma === null ? "Soma: confira os números" : `Soma: ${soma.toLocaleString("pt-BR")}%`}
-            {soma !== null && soma !== 100 && " (precisa dar 100%)"}
+            {soma !== null && !somaFechaCem(soma) && " (precisa dar 100%)"}
           </p>
         </fieldset>
 

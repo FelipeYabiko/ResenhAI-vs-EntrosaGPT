@@ -83,5 +83,5 @@
 }
 
 .erro::before {
-  content: "⚠ ";
+  content: "⚠ " / ""; /* decorative: screen readers skip it */
 }

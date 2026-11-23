@@ -25,7 +25,8 @@ export type PerfilDigitado = {
 const vazio = { debito: "", credito_a_vista: "", credito_parcelado: "", pix: "" };
 export const PERFIL_VAZIO: PerfilDigitado = { mix: { ...vazio }, taxas: { ...vazio }, custoMaquina: "", custoSaida: "" };
 
-// The project's reference case (docs/PRODUTO.md, RF-11) on the fictitious demo merchant.
+// The project's reference case (docs/PRODUTO.md, RF-11; docs/ARQUITETURA.md, "Simulador de custo")
+// on the fictitious demo merchant. Pix without fee is part of that documented case.
 export const EXEMPLO_MERCADINHO = {
   cnpj: "98.765.432/0001-98",
   faturamento: "15.000",
@@ -41,7 +42,8 @@ export const EXEMPLO_MERCADINHO = {
 export const campoDoMix = (m: Modalidade) => `mix-${m}`;
 export const campoDaTaxa = (m: Modalidade) => `taxa-${m}`;
 
-export type ErroPerfil = { campo: string; mensagem: string };
+/** `grupo: "mix"` marks an error about the shares as a whole (the sum), shown on all four share fields. */
+export type ErroPerfil = { campo: string; mensagem: string; grupo?: "mix" };
 
 export type PerfilLido = {
   mix: PorModalidade<number>;
@@ -50,8 +52,15 @@ export type PerfilLido = {
   custo_saida: number;
 };
 
+/** True when anything in the section was typed: then it is checked, so nothing typed is silently dropped. */
 export function perfilEmUso(perfil: PerfilDigitado): boolean {
-  return Object.values(perfil.mix).some((v) => v.trim() !== "");
+  const textos = [...Object.values(perfil.mix), ...Object.values(perfil.taxas), perfil.custoMaquina, perfil.custoSaida];
+  return textos.some((v) => v.trim() !== "");
+}
+
+/** Same tolerance as the API contract (api/app/schemas.py, Mix). */
+export function somaFechaCem(soma: number): boolean {
+  return Math.abs(soma - 100) <= 0.01;
 }
 
 function lerNumero(texto: string): number | null {
@@ -82,10 +91,11 @@ export function lerPerfil(perfil: PerfilDigitado): { ok: true; perfil: PerfilLid
     mix[chave] = valor;
   }
   const soma = somaDoMix(perfil) ?? 0;
-  if (Math.abs(soma - 100) > 0.01) {
+  if (!somaFechaCem(soma)) {
     return {
       ok: false,
       erro: {
+        grupo: "mix",
         campo: campoDoMix("debito"),
         mensagem: `As formas de pagamento precisam somar 100% (hoje somam ${soma.toLocaleString("pt-BR")}%).`,
       },

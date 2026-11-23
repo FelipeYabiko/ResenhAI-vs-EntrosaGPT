@@ -47,12 +47,12 @@ export function FormularioAnalise() {
     setPerfil(EXEMPLO_MERCADINHO.perfil);
     setErros({});
     setErroPerfil(null);
+    setSituacao({ tipo: "aviso", mensagem: "Exemplo fictício do mercadinho preenchido. Confira e clique em Analisar." });
   }
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     setSituacao({ tipo: "ocioso" }); // a new attempt clears the previous answer
-    limparConsulta(); // and the previous result page, so a failure never shows the last company
     const valor = lerReais(faturamento);
     const novosErros: Erros = {};
     if (!cnpjValido(cnpj)) novosErros.cnpj = "CNPJ inválido. Confira os 14 dígitos.";
@@ -78,6 +78,7 @@ export function FormularioAnalise() {
     setErroPerfil(null);
 
     setSituacao({ tipo: "enviando" });
+    limparConsulta(); // a query is really going out: forget the last result, so a failure never shows it
     const resposta = await consultar({
       cnpj: soDigitos(cnpj),
       perfil_vendas: { faturamento_mensal: valor!, ...(comparacao && { mix: comparacao.mix }) },
