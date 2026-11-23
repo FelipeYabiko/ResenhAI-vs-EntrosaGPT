@@ -49,7 +49,7 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - Licença do projeto (D-010).
 - Séries do Banco Central: confirmar o que são 21083 e 20714 e achar séries mensais atuais. As séries trimestrais por estado que testei só têm dados até 2023 (T-04).
 - Qual série do IBGE traz poder de compra e densidade comercial. Opcional.
-- Premissas da pontuação: pesos, múltiplos de limite e taxas. Quem define: Kayke (T-05).
+- Premissas da pontuação: pesos, múltiplos de limite e taxas. Quem define: Kayke (T-05). **Proposta pronta em `api/premissas.toml` (23/11), com `status = "proposta"`: basta o Kayke revisar, ajustar e trocar para `"aprovada"` para a consulta completa funcionar.**
 - Prazo para enviar o rascunho que libera os créditos do Devin e do Firecrawl. O e-mail da organização não informa. Perguntar a oi@hackbrasil.com.
 - Lista de temas proibidos do FAQ do site, ainda não lida na íntegra.
 - Quem é o agente: de uma credenciadora específica ou de um marketplace multi-provedor (D-012).
@@ -106,3 +106,5 @@ Ver `docs/DECISOES.md` para o motivo de cada uma.
 - 19/11: núcleo do simulador de economia (#18), com o caso de referência do RF-11 e o exemplo da landing conferidos em teste. Catálogo, taxa do Pix e antecipação continuam com o Kayke.
 - 22/11: tela de resultado do agente (#22), sem o visual do Figma por enquanto: economia, faixa de risco com fatores, recomendação, empresa, fontes e envio da proposta à matriz. Enquanto a consulta não fica pronta (#16), há um exemplo ilustrativo em `/resultado?exemplo`, marcado como tal e sem envio de proposta. Pergunta para o Kayke (T-05): a faixa A é o menor ou o maior risco? A tela só diz "escala de A a E" até isso ser definido.
 - 22/11: painel da matriz (#24) em `/matriz`, sem o visual do Figma por enquanto: lista ao vivo por SSE, filtro por status, aprovar, recusar, pedir pendência e baixar o contrato simulado. Contra a API local de verdade, a proposta apareceu no painel em 50 ms (RF-06). Falta o lado do agente ver a pendência pedida (segunda metade do RF-07).
+- 23/11: merge do #40 na `main` (tudo junto). Consulta completa (#16) pronta, esperando a aprovação das premissas: testada de ponta a ponta com as premissas da proposta (consulta → resultado em 90 ms → proposta na matriz em 27 ms → aprovação → PDF).
+- 23/11: lacuna para o vídeo: o formulário da landing só pede CNPJ e faturamento, então a economia (destaque do produto) não aparece pelo site. Falta um jeito de informar mix e taxas atuais (D-019).

@@ -264,7 +264,10 @@ Só guardamos dados públicos de empresa já sanitizados (ver `docs/DADOS.md`). 
 - Entrada: dados sanitizados da empresa, séries do Banco Central e faturamento informado.
 - Porta de entrada: situação cadastral diferente de ativa gera faixa E e limite zero, sem calcular o resto.
 - Regras (exemplos, Kayke define e calibra): tempo de atividade, porte, capital social em relação ao faturamento informado, inadimplência de referência do Banco Central, atividade (CNAE).
-- Pesos e tabelas em `api/scoring/config.yaml`, com comentário de onde veio cada premissa. **Premissas do time não são estatística.** Diga isso no README e no vídeo.
+- Pesos e tabelas em `api/premissas.toml` (formato TOML, lido pela biblioteca padrão do Python, sem dependência nova), com comentário de onde veio cada premissa. O arquivo tem `status = "proposta"` ou `"aprovada"`: enquanto não for aprovado pelo time, `POST /v1/consultas` responde `501` dizendo que aguarda as premissas. **Premissas do time não são estatística.** Diga isso no README e no vídeo.
+- Motor em `api/scoring/regras.py` (função pura). Regras da proposta de 23/11: tempo de atividade e porte.
+- Montagem do resultado em `api/app/consulta.py` (função pura): pontuação, limite, antecipação e economia com a máquina mais barata do catálogo. Sem mix ou sem taxa atual de uma forma de pagamento usada, `economia` vem `null`.
+- Origem dos dados da empresa: CNPJ fictício da lista usa só o fixture e nunca vai à fonte; empresa grande da lista usa o fixture guardado (`em_cache: true`); fora da lista (só com `MODO_DEMO=false`) vai à fonte pública e, se ela falhar, `502`.
 - Saída: pontos, faixa de A a E e lista de fatores com contribuição e explicação em português.
 - Limite = faturamento mensal informado multiplicado por um múltiplo da faixa. Taxa = base de referência mais prêmio por faixa. Tabelas ilustrativas, a calibrar.
 - Catálogo de demonstração fictício (nomes, faixas de volume e taxas inventados e marcados como ilustrativos). Não usar marcas reais nem taxas reais de provedor sem fonte e data.

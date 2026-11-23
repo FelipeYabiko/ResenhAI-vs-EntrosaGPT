@@ -98,11 +98,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Eventos
-         * @description Live proposal events for the back-office panel. New listeners get only new events;
-         *     a browser that reconnects sends Last-Event-ID and gets what it missed.
-         */
+        /** Eventos */
         get: operations["eventos_v1_eventos_get"];
         put?: never;
         post?: never;
@@ -873,15 +869,6 @@ export interface operations {
                     "application/json": components["schemas"]["Erro"];
                 };
             };
-            /** @description Not Implemented */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Erro"];
-                };
-            };
         };
     };
     contrato_simulado_v1_propostas__proposta_id__contrato_get: {
@@ -924,15 +911,6 @@ export interface operations {
             };
             /** @description Unprocessable Content */
             422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Erro"];
-                };
-            };
-            /** @description Not Implemented */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
