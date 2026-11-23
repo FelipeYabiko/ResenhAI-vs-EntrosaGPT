@@ -1,0 +1,14 @@
+{
+  "fonte": "cnpj_publico",
+  "atualizado_em": "2026-11-17",
+  "empresa": {
+    "cnpj": "33000167000101",
+    "nome": "PETROLEO BRASILEIRO S A PETROBRAS",
+    "situacao": "ATIVA",
+    "cnae_principal": "0600-0/01",
+    "porte": "DEMAIS",
+    "abertura": "1966-09-28",
+    "capital_social": 205431960490.52,
+    "municipio_uf": "Rio de Janeiro/RJ"
+  }
+}

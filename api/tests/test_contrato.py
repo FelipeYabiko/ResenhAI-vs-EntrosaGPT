@@ -6,10 +6,11 @@ import sys
 from pathlib import Path
 
 import pytest
-from app import schemas
-from app.main import app
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, ValidationError
+
+from app import schemas
+from app.main import app
 
 RAIZ = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(RAIZ / "scripts"))

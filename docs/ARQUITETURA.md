@@ -53,7 +53,7 @@ Donos (proposta): `/api/fontes` e `/api/app` Felipe; `/api/scoring` e `/api/reco
 | Tempo real | Server-Sent Events | Mais simples que WebSocket para "matriz recebe a proposta" |
 | Voz | Web Speech API (`SpeechRecognition`) | Sem custo, no navegador. Funciona em navegadores baseados em Chromium. Precisa de alternativa digitada |
 | Testes | pytest (API), Vitest e Playwright (web) | Fluxo principal coberto por teste de ponta a ponta |
-| Hospedagem | Vercel, decidido pelo time (D-004, em parte) | Precisa ter HTTPS, ficar no ar até 15/12 e não "dormir" durante a gravação. API em Python, SSE e banco na Vercel ainda não verificados. Plano grátis só permite deploy pelo dono (D-014) |
+| Hospedagem | Site no Netlify, API no Render (D-020; a Vercel foi descartada) | HTTPS e deploy automático da `main` pelo time todo. O Netlify não roda Python, por isso a API fica no Render, como um processo contínuo (bom para SSE e para a memória da API). O Render grátis desliga após 15 min sem uso: despertador agendado e aquecer antes de gravar |
 
 ## Contrato da API (v1)
 
@@ -81,6 +81,7 @@ Todo erro usa o mesmo formato, inclusive os de validação:
 | `429` | `limite_de_uso` | Limite de uso da API ou de uma fonte |
 | `501` | `nao_implementado` | Rota prevista no contrato e ainda não implementada |
 | `502` | `fonte_indisponivel` | Fonte fora do ar e sem dado em cache |
+| `503` | `muitas_conexoes` | Já há muitos painéis ouvindo `GET /v1/eventos` (limite da demo: 50) |
 
 ### `POST /v1/consultas`
 
@@ -173,11 +174,11 @@ Os números do exemplo são ilustrativos. `economia` vem `null` quando faltam o 
 | `GET /v1/propostas?status=enviada` | Matriz lista propostas (filtro opcional por `status`) | `200` com `{"propostas": [...]}` |
 | `GET /v1/propostas/{proposta_id}` | Detalhe | `200` com a proposta |
 | `PATCH /v1/propostas/{proposta_id}` | Matriz muda o status | `200` com a proposta |
-| `GET /v1/propostas/{proposta_id}/contrato` | PDF simulado, com marca d'água "SIMULAÇÃO" | `200` `application/pdf`; `409` se não estiver aprovada |
-| `GET /v1/eventos` | Fluxo SSE de eventos | `text/event-stream` |
+| `GET /v1/propostas/{proposta_id}/contrato` | PDF simulado (gerado com `fpdf2`), com marca d'água "SIMULAÇÃO" em todas as páginas e o aviso de simulação. Traz só o que a proposta já tem: número, data, perfil do vendedor, CNPJ e nome (ou "não exibido"), faixa, limite simulado, economia (se houver) e pendências | `200` `application/pdf` para baixar (`contrato-simulado-<id>.pdf`); `409 transicao_invalida` se não estiver aprovada |
+| `GET /v1/eventos` | Fluxo SSE de eventos | `text/event-stream`; `503` se já houver painéis demais |
 | `GET /v1/saude` | Verificação de saúde | `200` |
 
-`agente` é o identificador do perfil de demonstração escolhido em "Entrar na demonstração" (D-015), só letras minúsculas, números e `_`. Não há login nem nome de pessoa real. `observacoes` e `pendencias[].descricao` são texto livre: a tela avisa para não escrever dado pessoal (nome, CPF, telefone, e-mail).
+`agente` é o identificador do perfil de demonstração escolhido em "Entrar na demonstração" (D-015), só letras minúsculas, números e `_`. Não há login nem nome de pessoa real. `observacoes` e `pendencias[].descricao` são texto livre e aparecem para qualquer visitante da demo. A tela avisa para não escrever dado pessoal, e a API recusa com `422` o texto que tem e-mail ou 8 dígitos ou mais seguidos (CPF, telefone). `consulta_id` usa só letras minúsculas, números e `_`.
 
 Entrada de `POST /v1/propostas`:
 
@@ -218,7 +219,7 @@ Entrada de `PATCH /v1/propostas/{proposta_id}`:
 { "status": "pendente", "pendencias": [ { "descricao": "Enviar comprovante de faturamento dos últimos 3 meses." } ] }
 ```
 
-Status possíveis: `enviada`, `pendente`, `aprovada`, `recusada`. Transições permitidas: de `enviada` ou `pendente` para `pendente`, `aprovada` ou `recusada`. `aprovada` e `recusada` são finais. Pedir `pendente` exige ao menos uma pendência. Outra transição devolve `409`.
+Status possíveis: `enviada`, `pendente`, `aprovada`, `recusada`. Transições permitidas: de `enviada` ou `pendente` para `pendente`, `aprovada` ou `recusada`. `aprovada` e `recusada` são finais. Pedir `pendente` exige ao menos uma pendência, e pendência só vale com `pendente` (com outro status, `422`). As pendências se acumulam, cada uma com a data em que foi pedida. Outra transição devolve `409`, sem mudar nada. Cada decisão publica o evento `proposta.<status>`.
 
 Saída de `GET /v1/saude`:
 
@@ -228,7 +229,7 @@ Saída de `GET /v1/saude`:
 
 ### Evento
 
-Cada evento do SSE vai em uma mensagem `event: <tipo>` com o JSON abaixo em `data:`.
+Cada evento do SSE vai em uma mensagem com `id: <id do evento>`, `event: <tipo>` e o JSON abaixo em `data:`. Quem conecta recebe só os eventos novos (o painel carrega a lista com `GET /v1/propostas` antes). Se a conexão cair, o navegador reconecta sozinho mandando o cabeçalho `Last-Event-ID`, e a API reenvia o que ficou para trás. A API manda um comentário de tempo em tempo para a conexão não ser fechada por inatividade.
 
 ```json
 {
@@ -242,6 +243,10 @@ Cada evento do SSE vai em uma mensagem `event: <tipo>` com o JSON abaixo em `dat
 ```
 
 Tipos: `proposta.criada`, `proposta.pendente`, `proposta.aprovada`, `proposta.recusada`. Se `WEBHOOK_MATRIZ_URL` estiver definida, a API também faz `POST` do mesmo evento com a assinatura HMAC no cabeçalho `X-Assinatura`. Isso cumpre o "webhook para o painel" do documento original e mantém o SSE como caminho principal da demo.
+
+Por enquanto, consultas, propostas e eventos ficam na memória da API (`api/app/memoria.py`) e somem quando ela reinicia. O Postgres entra no lugar quando o banco for criado. Como a demo é pública e sem login, a memória tem limites: 1000 consultas e 1000 propostas (as mais antigas saem), 1000 eventos para reenvio, 50 painéis conectados e 100 eventos não lidos por painel (um painel lento perde os mais antigos e recarrega a lista).
+
+O site chama a API de outro endereço. Só as origens de `CORS_ORIGENS` (`.env.example`) podem chamá-la.
 
 ## Modelo de dados (proposta)
 
@@ -266,7 +271,9 @@ Só guardamos dados públicos de empresa já sanitizados (ver `docs/DADOS.md`). 
 
 ## Simulador de custo (proposta, vem do RFC do Comparador)
 
-- Função pura em `api/recomendacao/`, sem rede, sem banco e sem LLM. Mesma entrada, mesma saída.
+- Função pura em `api/recomendacao/simulador.py` (`simular`, `comparar_ofertas`), sem rede, sem banco e sem LLM. Mesma entrada, mesma saída. Contas com decimais exatos, arredondadas para centavos no fim.
+- Taxa ausente (`null`) numa forma de pagamento que tem vendas no mix faz a simulação parar com erro (`TaxaNaoInformada`). Nunca vira zero.
+- Ainda em aberto (Kayke, #18): catálogo de ofertas da demo, taxa do Pix de cada oferta e custo de antecipação. O núcleo recebe as ofertas como entrada e não assume nenhum desses valores. O custo de antecipação ainda não entra na conta.
 - Custo mensal de uma oferta = soma, para cada forma de pagamento, de faturamento × participação no mix × taxa; mais o custo mensal da máquina (compra dividida em 12 meses, ou aluguel); mais o custo de antecipação, quando o prazo desejado for menor que o padrão da oferta.
 - Pix entra com a taxa informada ou a do catálogo. Não assuma taxa zero: confira.
 - Economia = custo atual menos custo com a oferta. Se houver custo de saída, mostrar em quantos meses a economia o compensa.
@@ -284,9 +291,11 @@ Só guardamos dados públicos de empresa já sanitizados (ver `docs/DADOS.md`). 
 
 Detalhes, limites e resultados dos testes em `docs/DADOS.md`. Regras comuns: hosts fixos, timeout de 1,2 s, cache com TTL, fallback para o último dado em cache marcado como tal, e fixtures para a demo.
 
-## Deploy (proposta)
+## Deploy (D-020)
 
-- Web e API em HTTPS, com deploy automático da `main`.
+Passo a passo em `docs/DEPLOY.md`.
+
+- Site no Netlify (pasta `/web`) e API no Render (pasta `/api`, configurada em `render.yaml`), em HTTPS, com deploy automático da `main`.
 - Variáveis de ambiente no provedor, nunca no repositório. Modelo em `.env.example`.
-- Evitar hospedagem que "dorme": o primeiro acesso lento quebra a demo e o vídeo. Se usar plano gratuito, manter um ping de aquecimento e checar antes de gravar.
+- Evitar hospedagem que "dorme": o primeiro acesso lento quebra a demo e o vídeo. O despertador `.github/workflows/despertar-api.yml` chama `/v1/saude` a cada 10 minutos; mesmo assim, abra a demo antes de gravar e antes da avaliação.
 - Congelar a versão para avaliação e manter o repositório público até 15/12.

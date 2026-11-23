@@ -1,0 +1,50 @@
+{
+  "descricao": "CNPJs aceitos pela demo (MODO_DEMO=true). Empresas grandes conferidas na fonte pública; fictícios com dígitos válidos, conferidos como inexistentes na fonte. Ver docs/DADOS.md.",
+  "cnpjs": [
+    {
+      "cnpj": "00000000000191",
+      "apelido": "Banco do Brasil",
+      "origem": "real_empresa_grande",
+      "conferido_em": "2026-11-18"
+    },
+    {
+      "cnpj": "00360305000104",
+      "apelido": "Caixa Econômica Federal",
+      "origem": "real_empresa_grande",
+      "conferido_em": "2026-11-18"
+    },
+    {
+      "cnpj": "33000167000101",
+      "apelido": "Petrobras",
+      "origem": "real_empresa_grande",
+      "conferido_em": "2026-11-18"
+    },
+    {
+      "cnpj": "34028316000103",
+      "apelido": "Correios",
+      "origem": "real_empresa_grande",
+      "conferido_em": "2026-11-18"
+    },
+    {
+      "cnpj": "98765432000198",
+      "apelido": "Mercadinho Boa Vista (fictício)",
+      "origem": "ficticio",
+      "perfil": "mercadinho",
+      "conferido_em": "2026-11-18"
+    },
+    {
+      "cnpj": "98765433000132",
+      "apelido": "Salão Beleza Pura (fictício)",
+      "origem": "ficticio",
+      "perfil": "salao",
+      "conferido_em": "2026-11-18"
+    },
+    {
+      "cnpj": "98765434000187",
+      "apelido": "Depósito Material Central (fictício)",
+      "origem": "ficticio",
+      "perfil": "loja_construcao",
+      "conferido_em": "2026-11-18"
+    }
+  ]
+}

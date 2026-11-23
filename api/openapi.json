@@ -145,16 +145,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Erro"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         }
       },
@@ -208,16 +198,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Erro"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         }
       }
@@ -270,16 +250,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Erro"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         }
       },
@@ -350,16 +320,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Erro"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         }
       }
@@ -418,16 +378,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Erro"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         }
       }
@@ -439,26 +389,72 @@
         ],
         "summary": "Eventos",
         "operationId": "eventos_v1_eventos_get",
+        "parameters": [
+          {
+            "name": "last-event-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last-Event-Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Server-Sent Events. Each message: `event: <tipo>` and the Evento JSON in `data:`.",
+            "description": "Server-Sent Events. Each message: `id`, `event: <tipo>` and the Evento JSON in `data:`.",
             "content": {
               "text/event-stream": {
+                "itemSchema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "string"
+                    },
+                    "event": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "retry": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Evento"
                 }
               }
             }
           },
-          "501": {
-            "description": "Not Implemented",
+          "422": {
             "content": {
-              "application/json": {
+              "text/event-stream": {
                 "schema": {
                   "$ref": "#/components/schemas/Erro"
                 }
               }
-            }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         }
       }
@@ -818,6 +814,7 @@
               "cnpj_invalido",
               "cnpj_fora_da_demo",
               "limite_de_uso",
+              "muitas_conexoes",
               "nao_implementado",
               "fonte_indisponivel"
             ],
@@ -982,7 +979,7 @@
             "maxLength": 500,
             "minLength": 1,
             "title": "Descricao",
-            "description": "Must not contain personal data."
+            "description": "Text that looks like personal data is refused."
           },
           "criada_em": {
             "type": "string",
@@ -1005,7 +1002,7 @@
             "maxLength": 500,
             "minLength": 1,
             "title": "Descricao",
-            "description": "Must not contain personal data."
+            "description": "Text that looks like personal data is refused."
           }
         },
         "additionalProperties": false,
@@ -1261,6 +1258,7 @@
         "properties": {
           "consulta_id": {
             "type": "string",
+            "pattern": "^[a-z0-9_]{1,40}$",
             "title": "Consulta Id"
           },
           "agente": {
@@ -1280,7 +1278,7 @@
               }
             ],
             "title": "Observacoes",
-            "description": "Free text about the sale. Must not contain personal data."
+            "description": "Free text about the sale. Text that looks like personal data is refused."
           }
         },
         "additionalProperties": false,

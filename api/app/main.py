@@ -5,21 +5,34 @@ answer 501 with the standard error body; each one points to its issue.
 """
 
 import os
+import re
+from collections.abc import AsyncIterable
+from datetime import UTC, datetime
+from uuid import uuid4
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Header, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, Response
+from fastapi.sse import EventSourceResponse, ServerSentEvent
 
+from app.cnpj import cnpj_valido
+from app.contrato_pdf import gerar_contrato_pdf
+from app.memoria import memoria
 from app.schemas import (
+    AVISO_SIMULACAO,
     ConsultaEntrada,
     ConsultaResultado,
+    DadosEvento,
     Erro,
     Evento,
     ListaPropostas,
+    Pendencia,
     Proposta,
     PropostaAtualizacao,
     PropostaEntrada,
+    ResumoProposta,
     Saude,
     StatusProposta,
 )
@@ -28,6 +41,14 @@ app = FastAPI(
     title="CredFácil API",
     version="1.0.0",
     description="Simulação. Não é oferta de crédito. Todo limite, taxa e aprovação é simulado.",
+)
+
+# The web app runs on another origin (Next.js). Only the origins listed here may call the API.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in os.getenv("CORS_ORIGENS", "http://localhost:3000").split(",") if o.strip()],
+    allow_methods=["GET", "POST", "PATCH"],
+    allow_headers=["Content-Type", "Last-Event-ID"],
 )
 
 
@@ -71,69 +92,168 @@ def saude() -> Saude:
     tags=["consultas"],
 )
 def criar_consulta(entrada: ConsultaEntrada) -> ConsultaResultado:
+    # RF-01: reject a wrong CNPJ before any other step, so no external source is called.
+    if not cnpj_valido(entrada.cnpj):
+        raise ErroApi(422, "cnpj_invalido", "CNPJ inválido. Confira os 14 dígitos.")
+    return _depois_da_validacao(entrada)
+
+
+def _depois_da_validacao(entrada: ConsultaEntrada) -> ConsultaResultado:
+    """Next step of the query (sources, scoring, simulation). Tests swap it to prove validation runs first."""
     raise _nao_implementado()  # built in issue #16
+
+
+ID_EVENTO = re.compile(r"e_[0-9a-f]{12}")
+
+
+def _agora() -> datetime:
+    return datetime.now(UTC)
+
+
+def _proposta_ou_404(proposta_id: str) -> Proposta:
+    proposta = memoria.propostas.get(proposta_id)
+    if proposta is None:
+        raise ErroApi(404, "nao_encontrado", "Proposta não encontrada.")
+    return proposta
 
 
 @app.post(
     "/v1/propostas",
     response_model=Proposta,
     status_code=201,
-    responses=_erros(404, 422, 501),
+    responses=_erros(404, 422),
     tags=["propostas"],
 )
-def criar_proposta(entrada: PropostaEntrada) -> Proposta:
-    raise _nao_implementado()  # built in issue #23
+async def criar_proposta(entrada: PropostaEntrada) -> Proposta:
+    # Proposal routes are async (with no await) on purpose: they run on the event loop one at a time,
+    # so the in-memory dict is never read while another request changes it, and listeners are woken
+    # on the same loop that serves /v1/eventos.
+    consulta = memoria.consultas.get(entrada.consulta_id)
+    if consulta is None:
+        raise ErroApi(404, "nao_encontrado", "Consulta não encontrada. Faça a consulta antes de enviar a proposta.")
+    agora = _agora()
+    proposta = Proposta(
+        proposta_id=f"p_{uuid4().hex[:12]}",
+        consulta_id=consulta.consulta_id,
+        agente=entrada.agente,
+        status="enviada",
+        observacoes=entrada.observacoes,
+        pendencias=[],
+        resumo=ResumoProposta(
+            cnpj=consulta.empresa.cnpj,
+            nome=consulta.empresa.nome,
+            faixa=consulta.pontuacao.faixa,
+            limite_credito_simulado=consulta.recomendacao.limite_credito_simulado,
+            economia_mensal=consulta.economia.economia_mensal if consulta.economia else None,
+        ),
+        criada_em=agora,
+        atualizada_em=agora,
+        aviso=AVISO_SIMULACAO,
+    )
+    memoria.propostas[proposta.proposta_id] = proposta
+    _publicar(proposta, "proposta.criada", agora)
+    return proposta
 
 
-@app.get("/v1/propostas", response_model=ListaPropostas, responses=_erros(422, 501), tags=["propostas"])
-def listar_propostas(status: StatusProposta | None = None) -> ListaPropostas:
-    raise _nao_implementado()  # built in issue #23
+def _publicar(proposta: Proposta, tipo: str, quando: datetime) -> None:
+    memoria.eventos.publicar(
+        Evento(
+            id=f"e_{uuid4().hex[:12]}",
+            tipo=tipo,
+            ocorrido_em=quando,
+            proposta_id=proposta.proposta_id,
+            dados=DadosEvento(
+                faixa=proposta.resumo.faixa, limite_credito_simulado=proposta.resumo.limite_credito_simulado
+            ),
+            aviso=AVISO_SIMULACAO,
+        )
+    )
+
+
+@app.get("/v1/propostas", response_model=ListaPropostas, responses=_erros(422), tags=["propostas"])
+async def listar_propostas(status: StatusProposta | None = None) -> ListaPropostas:
+    propostas = [p for p in memoria.propostas.values() if status is None or p.status == status]
+    return ListaPropostas(propostas=sorted(propostas, key=lambda p: p.criada_em, reverse=True))
 
 
 @app.get(
     "/v1/propostas/{proposta_id}",
     response_model=Proposta,
-    responses=_erros(404, 422, 501),
+    responses=_erros(404, 422),
     tags=["propostas"],
 )
-def obter_proposta(proposta_id: str) -> Proposta:
-    raise _nao_implementado()  # built in issue #23
+async def obter_proposta(proposta_id: str) -> Proposta:
+    return _proposta_ou_404(proposta_id)
 
 
 @app.patch(
     "/v1/propostas/{proposta_id}",
     response_model=Proposta,
-    responses=_erros(404, 409, 422, 501),
+    responses=_erros(404, 409, 422),
     tags=["propostas"],
 )
-def atualizar_proposta(proposta_id: str, entrada: PropostaAtualizacao) -> Proposta:
-    raise _nao_implementado()  # built in issue #24
+async def atualizar_proposta(proposta_id: str, entrada: PropostaAtualizacao) -> Proposta:
+    # Back office decision (RF-07, RF-08); aprovada and recusada are final.
+    # Keep no await between reading the status and saving: that is what makes two decisions safe.
+    proposta = _proposta_ou_404(proposta_id)
+    if proposta.status not in ("enviada", "pendente"):
+        raise ErroApi(409, "transicao_invalida", f"A proposta já foi {proposta.status} e não pode mudar.")
+    agora = _agora()
+    novas = [Pendencia(descricao=p.descricao, criada_em=agora) for p in entrada.pendencias]
+    proposta = proposta.model_copy(
+        update={"status": entrada.status, "pendencias": [*proposta.pendencias, *novas], "atualizada_em": agora}
+    )
+    memoria.propostas[proposta_id] = proposta
+    _publicar(proposta, f"proposta.{entrada.status}", agora)
+    return proposta
 
 
 @app.get(
     "/v1/propostas/{proposta_id}/contrato",
     response_class=Response,
-    responses={200: {"content": {"application/pdf": {}}}, **_erros(404, 409, 422, 501)},
+    responses={200: {"content": {"application/pdf": {}}}, **_erros(404, 409, 422)},
     tags=["propostas"],
 )
-def contrato_simulado(proposta_id: str) -> Response:
-    raise _nao_implementado()  # built in issue #24
+async def contrato_simulado(proposta_id: str) -> Response:
+    # RF-09: only an approved proposal has a (simulated) contract. A one-page PDF takes ~10 ms, so it
+    # runs on the event loop like the other proposal routes (no thread, no lock needed).
+    proposta = _proposta_ou_404(proposta_id)
+    if proposta.status != "aprovada":
+        raise ErroApi(409, "transicao_invalida", "O contrato simulado só existe depois que a proposta é aprovada.")
+    return Response(
+        content=gerar_contrato_pdf(proposta),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="contrato-simulado-{proposta_id}.pdf"'},
+    )
+
+
+async def _vaga_para_ouvinte() -> None:
+    # Checked before the stream starts, so the client gets a real 503 instead of a broken stream.
+    if memoria.eventos.lotado():
+        raise ErroApi(503, "muitas_conexoes", "Muitos painéis conectados agora. Tente de novo em instantes.")
 
 
 @app.get(
     "/v1/eventos",
-    response_class=Response,
+    response_class=EventSourceResponse,
     responses={
         200: {
-            "description": "Server-Sent Events. Each message: `event: <tipo>` and the Evento JSON in `data:`.",
+            "description": "Server-Sent Events. Each message: `id`, `event: <tipo>` and the Evento JSON in `data:`.",
             "content": {"text/event-stream": {"schema": {"$ref": "#/components/schemas/Evento"}}},
         },
-        **_erros(501),
+        **_erros(422, 503),
     },
     tags=["eventos"],
 )
-def eventos() -> Response:
-    raise _nao_implementado()  # built in issue #23
+async def eventos(
+    last_event_id: str | None = Header(default=None), _: None = Depends(_vaga_para_ouvinte)
+) -> AsyncIterable[ServerSentEvent]:
+    # Live proposal events for the back-office panel. New listeners get only new events;
+    # a browser that reconnects sends Last-Event-ID and gets what it missed.
+    if last_event_id is not None and not ID_EVENTO.fullmatch(last_event_id):
+        last_event_id = None  # not one of our ids: treat as a new listener
+    async for evento in memoria.eventos.assinar(depois_de=last_event_id):
+        yield ServerSentEvent(id=evento.id, event=evento.tipo, data=evento.model_dump(mode="json"))
 
 
 def _openapi() -> dict:
