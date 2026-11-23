@@ -88,7 +88,8 @@ Abra http://localhost:3000. O site chama a API em `http://localhost:8000`; para 
 | Para quê | Comando (dentro de `web/`) |
 | --- | --- |
 | Conferir o código (lint, inclui regras de acessibilidade) | `npm run lint` |
-| Gerar a versão de produção | `npm run build` |
+| Gerar a versão de produção (páginas HTML prontas em `web/out/`) | `npm run build` |
+| Ver a versão de produção no navegador (depois do build) | `npm run start` |
 | Testes no navegador, com axe (rode o build antes) | `npm run e2e` |
 | Atualizar os tipos da API depois de mudar o contrato | `npm run tipos` |
 

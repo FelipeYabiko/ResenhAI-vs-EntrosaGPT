@@ -52,7 +52,7 @@ async function consultar(page: Page, corpo: object = RESULTADO) {
   await page.getByLabel("CNPJ").fill("98765432000198");
   await page.getByLabel("Faturamento mensal estimado").fill("15000");
   await page.getByRole("button", { name: "Analisar" }).click();
-  await expect(page).toHaveURL(/\/resultado$/);
+  await expect(page).toHaveURL(/\/resultado\/?$/);
 }
 
 /** Mocks POST /v1/propostas and returns the bodies it received. */

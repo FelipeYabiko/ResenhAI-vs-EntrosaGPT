@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/servir.mjs",
     "lint": "eslint .",
     "tipos": "openapi-typescript ../api/openapi.json -o src/lib/api-tipos.ts",
     "e2e": "playwright test"

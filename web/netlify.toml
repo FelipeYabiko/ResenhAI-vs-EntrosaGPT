@@ -1,4 +1,9 @@
-# Netlify settings for the site (base directory: web). See docs/DEPLOY.md.
+# Netlify settings for the site. In the Netlify app, Base directory must be `web`. See docs/DEPLOY.md.
+# This file wins over the build settings typed in the app.
+
+[build]
+  command = "npm run build"
+  publish = "out"   # static HTML exported by Next.js (next.config.ts: output "export")
 
 # Basic security headers. The CSP below only blocks framing, plugins and <base> changes;
 # a full CSP (script and connect sources) can come later, tested on a deploy preview first.
