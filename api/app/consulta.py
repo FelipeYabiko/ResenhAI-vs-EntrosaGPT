@@ -5,7 +5,7 @@ deterministic code (AGENTS.md). Missing inputs give a null economy, never a gues
 """
 
 from datetime import date
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from uuid import uuid4
 
 from app.schemas import (
@@ -57,7 +57,9 @@ def _economia(entrada: ConsultaEntrada, premissas: Premissas) -> tuple[Economia 
             _ofertas(premissas),
         )[0]
     except (TaxaNaoInformada, ValueError):
-        return None, None  # a rate is missing on one side: no comparison, no invented number
+        # A rate is missing on one side: no comparison, no invented number. (Invalid mix or revenue never
+        # gets here: the API schema already refuses them.)
+        return None, None
     return melhor.para_contrato(), melhor.oferta
 
 
@@ -71,7 +73,9 @@ def montar_resultado(
     economia, modelo_mais_barato = _economia(entrada, premissas)
     maquina = next(m for m in premissas.catalogo if m.modelo == (modelo_mais_barato or premissas.catalogo[0].modelo))
 
-    limite = (faturamento * Decimal(str(regras.multiplo_limite[pontuacao.faixa]))).quantize(Decimal("0.01"))
+    limite = (faturamento * Decimal(str(regras.multiplo_limite[pontuacao.faixa]))).quantize(
+        Decimal("0.01"), ROUND_HALF_UP
+    )
     antecipacao = Decimal(str(regras.antecipacao_base_mensal)) + Decimal(
         str(regras.antecipacao_premio_mensal[pontuacao.faixa])
     )

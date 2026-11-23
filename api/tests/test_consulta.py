@@ -138,3 +138,24 @@ def test_proposta_pode_ser_criada_da_consulta():
     proposta = cliente.post("/v1/propostas", json={"consulta_id": consulta_id, "agente": "agente_demo"})
     assert proposta.status_code == 201
     assert proposta.json()["resumo"]["nome"] == "MERCADINHO BOA VISTA (FICTÍCIO)"
+
+
+def test_premissas_com_erro_respondem_501_com_mensagem_clara(monkeypatch):
+    from scoring.premissas import PremissasInvalidas
+
+    def quebradas():
+        raise PremissasInvalidas("premissas.toml incompleto: faixas")
+
+    monkeypatch.setattr(main, "carregar_premissas", quebradas)
+    resposta = consultar()
+    assert resposta.status_code == 501
+    assert "precisam de correção" in resposta.json()["erro"]["mensagem"]
+
+
+def test_conexao_que_cai_no_meio_vira_502_e_nao_500(monkeypatch):
+    def cai(*_):
+        raise ConnectionResetError
+
+    monkeypatch.setenv("MODO_DEMO", "false")
+    monkeypatch.setattr(main, "baixar", cai)
+    assert consultar(cnpj="98765435000121").status_code == 502

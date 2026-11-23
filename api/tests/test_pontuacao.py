@@ -92,3 +92,25 @@ def test_premissas_do_projeto_sao_validas_mesmo_em_proposta():
     from scoring.premissas import ARQUIVO, ler_premissas
 
     assert ler_premissas(ARQUIVO).status in {"proposta", "aprovada"}
+
+
+ORIGINAL = Path(__file__).with_name("premissas_teste.toml").read_text()
+
+
+@pytest.mark.parametrize(
+    ("troca", "trecho_da_mensagem"),
+    [
+        (("A = 75, B = 60", "B = 60"), "faixas"),  # band A missing
+        (("A = 75, B = 60", "A = 50, B = 60"), "maior"),  # out of order
+        (("anos_min = 0", "anos_min = 1"), "anos_min = 0"),
+        ((", E = 0.0 }", " }"), "multiplo_limite"),
+        (('status = "aprovada"', "status = aprovada"), "erro de escrita"),  # TOML syntax
+    ],
+)
+def test_erro_de_edicao_nas_premissas_vira_mensagem_clara(tmp_path, troca, trecho_da_mensagem):
+    from scoring.premissas import PremissasInvalidas
+
+    arquivo = tmp_path / "p.toml"
+    arquivo.write_text(ORIGINAL.replace(*troca, 1))
+    with pytest.raises(PremissasInvalidas, match=trecho_da_mensagem):
+        carregar_premissas(arquivo)

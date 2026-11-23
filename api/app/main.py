@@ -4,10 +4,10 @@ This module declares the contract routes. Routes that are not built yet
 answer 501 with the standard error body; each one points to its issue.
 """
 
+import http.client
 import os
 import re
 import time
-import urllib.error
 from collections.abc import AsyncIterable
 from datetime import UTC, date, datetime
 from uuid import uuid4
@@ -43,7 +43,7 @@ from app.schemas import (
 )
 from fontes.cnpj_publico import baixar, carregar_fixture, sanitizar
 from fontes.demo import CnpjDemo, cnpjs_da_demo
-from scoring.premissas import PremissasPendentes, carregar_premissas
+from scoring.premissas import PremissasInvalidas, PremissasPendentes, carregar_premissas
 
 app = FastAPI(
     title="CredFácil API",
@@ -122,7 +122,7 @@ def _dados_da_empresa(cnpj: str, item_demo: CnpjDemo | None) -> tuple[Empresa, F
         return salvo.empresa, Fonte(nome="cnpj_publico", status="ok", atualizado_em=salvo.atualizado_em, em_cache=True)
     try:
         dados = sanitizar(baixar(cnpj), cnpj)
-    except (urllib.error.URLError, TimeoutError, ValueError):
+    except (OSError, http.client.HTTPException, ValueError):  # URLError and timeouts are OSError too
         raise ErroApi(502, "fonte_indisponivel", "Não foi possível consultar a fonte pública de CNPJ agora.") from None
     return dados.empresa, Fonte(nome="cnpj_publico", status="ok", atualizado_em=dados.atualizado_em, em_cache=False)
 
@@ -143,6 +143,8 @@ def _depois_da_validacao(entrada: ConsultaEntrada) -> ConsultaResultado:
             "nao_implementado",
             "A análise completa aguarda a aprovação das premissas do time (pontuação e catálogo).",
         ) from None
+    except PremissasInvalidas as erro:
+        raise ErroApi(501, "nao_implementado", f"As premissas do time precisam de correção. {erro}") from None
     empresa, fonte = _dados_da_empresa(entrada.cnpj, item_demo)
     tempo_ms = round((time.perf_counter() - inicio) * 1000)
     resultado = montar_resultado(entrada, empresa, [fonte], premissas, date.today(), tempo_ms)

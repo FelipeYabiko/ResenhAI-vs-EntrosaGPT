@@ -9,7 +9,7 @@ import tomllib
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 ARQUIVO = Path(__file__).resolve().parents[1] / "premissas.toml"
 FAIXAS = ("A", "B", "C", "D", "E")
@@ -17,6 +17,10 @@ FAIXAS = ("A", "B", "C", "D", "E")
 
 class PremissasPendentes(Exception):
     """The premises file is not approved yet."""
+
+
+class PremissasInvalidas(Exception):
+    """The premises file is broken (syntax or missing values). The message says what to fix."""
 
 
 class _Modelo(BaseModel):
@@ -62,10 +66,31 @@ class Premissas(_Modelo):
     recomendacao: Recomendacao
     catalogo: list[Maquina] = Field(min_length=1)
 
+    @model_validator(mode="after")
+    def completas_e_coerentes(self) -> "Premissas":
+        # Catches the typical slip when someone edits the numbers by hand.
+        if set(self.pontuacao.faixas) != {"A", "B", "C", "D"}:
+            raise ValueError("pontuacao.faixas precisa ter A, B, C e D.")
+        minimos = [self.pontuacao.faixas[f] for f in ("A", "B", "C", "D")]
+        if minimos != sorted(minimos, reverse=True) or len(set(minimos)) != 4:
+            raise ValueError("pontuacao.faixas precisa ir do maior (A) para o menor (D), sem repetir.")
+        if not any(f.anos_min == 0 for f in self.pontuacao.tempo_de_atividade):
+            raise ValueError("pontuacao.tempo_de_atividade precisa de uma linha com anos_min = 0.")
+        for nome in ("multiplo_limite", "antecipacao_premio_mensal"):
+            if set(getattr(self.recomendacao, nome)) != set(FAIXAS):
+                raise ValueError(f"recomendacao.{nome} precisa ter as faixas A, B, C, D e E.")
+        return self
+
 
 def ler_premissas(arquivo: Path = ARQUIVO) -> Premissas:
-    with arquivo.open("rb") as f:
-        return Premissas.model_validate(tomllib.load(f))
+    try:
+        with arquivo.open("rb") as f:
+            return Premissas.model_validate(tomllib.load(f))
+    except tomllib.TOMLDecodeError as erro:
+        raise PremissasInvalidas(f"{arquivo.name} tem erro de escrita: {erro}") from None
+    except ValidationError as erro:
+        problemas = "; ".join(f"{'.'.join(map(str, e['loc'])) or 'arquivo'}: {e['msg']}" for e in erro.errors())
+        raise PremissasInvalidas(f"{arquivo.name} incompleto ou incoerente: {problemas}") from None
 
 
 def carregar_premissas(arquivo: Path = ARQUIVO) -> Premissas:
