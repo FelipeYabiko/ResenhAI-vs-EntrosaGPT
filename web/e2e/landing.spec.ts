@@ -88,7 +88,7 @@ test("resultado da API aparece com o aviso de simulação", async ({ page }) => 
   await page.getByRole("button", { name: "Analisar" }).click();
 
   // Since issue #22 the result opens on its own page (/resultado), not inside the form.
-  await expect(page).toHaveURL(/\/resultado$/);
+  await expect(page).toHaveURL(/\/resultado\/?$/);
   const resultado = page.getByRole("main");
   await expect(resultado).toContainText("Faixa B");
   await expect(resultado).toContainText("R$ 50.000,00");

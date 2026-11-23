@@ -12,7 +12,7 @@ export default defineConfig({
     { name: "celular", use: { ...devices["Pixel 7"] } },
   ],
   webServer: {
-    command: "npx next start -p 3100",
+    command: "node scripts/servir.mjs 3100",
     url: "http://localhost:3100",
     reuseExistingServer: !process.env.CI,
   },

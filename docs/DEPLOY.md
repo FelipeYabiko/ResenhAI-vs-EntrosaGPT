@@ -52,7 +52,7 @@ Só quando a pasta `/web` existir (issue #6).
 1. Entre em https://app.netlify.com com a conta do GitHub.
 2. Clique em **Add new site** (ou **Add new project**) e depois em **Import an existing project**.
 3. Escolha **GitHub** e o repositório `ResenhAI-vs-EntrosaGPT`.
-4. Em **Base directory**, escreva `web`. O Netlify reconhece o Next.js e preenche o resto.
+4. Em **Base directory**, escreva `web`. O comando de build e a pasta publicada vêm do arquivo `web/netlify.toml` (`npm run build` e `out`) e valem mais que o que estiver escrito na tela do Netlify. O site é exportado como páginas HTML prontas (`output: "export"` em `web/next.config.ts`), sem servidor e sem plugin do Netlify.
 5. Em **Environment variables**, crie `NEXT_PUBLIC_API_URL` com o endereço da API do passo 1.6, **antes** do primeiro deploy. Sem ela o deploy para com a mensagem "Defina NEXT_PUBLIC_API_URL no Netlify", de propósito: o endereço da API entra no site na hora do deploy.
 6. Clique em **Deploy** e espere terminar.
 7. Copie o endereço do site, algo como `https://credfacil.netlify.app`.
