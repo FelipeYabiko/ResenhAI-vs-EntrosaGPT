@@ -5,10 +5,19 @@ import { useRouter } from "next/navigation";
 import { useId, useRef, useState, type FormEvent } from "react";
 import { consultar } from "@/lib/api";
 import { cnpjValido, mascararCnpj, soDigitos } from "@/lib/cnpj";
-import { salvarConsulta } from "@/lib/consulta-salva";
+import { limparConsulta, salvarConsulta } from "@/lib/consulta-salva";
 import { lerReais } from "@/lib/formato";
 import { mensagemDeFalha } from "@/lib/mensagens";
+import {
+  EXEMPLO_MERCADINHO,
+  lerPerfil,
+  PERFIL_VAZIO,
+  perfilEmUso,
+  type ErroPerfil,
+  type PerfilDigitado,
+} from "@/lib/perfil-vendas";
 import estilos from "./FormularioAnalise.module.css";
+import { PerfilVendas } from "./PerfilVendas";
 
 type Erros = { cnpj?: string; faturamento?: string };
 type Situacao =
@@ -17,8 +26,7 @@ type Situacao =
   | { tipo: "abrindo_resultado" }
   | { tipo: "aviso"; mensagem: string; comExemplo?: boolean };
 
-const MENSAGEM_EM_CONSTRUCAO =
-  "O CNPJ está certo. A análise completa ainda está em construção: por enquanto o servidor só confere o CNPJ.";
+const MENSAGEM_EM_CONSTRUCAO = "O CNPJ está certo. A análise completa ainda está em construção.";
 
 export function FormularioAnalise() {
   const id = useId();
@@ -29,6 +37,18 @@ export function FormularioAnalise() {
   const [situacao, setSituacao] = useState<Situacao>({ tipo: "ocioso" });
   const campoCnpj = useRef<HTMLInputElement>(null);
   const campoFaturamento = useRef<HTMLInputElement>(null);
+  const [perfil, setPerfil] = useState<PerfilDigitado>(PERFIL_VAZIO);
+  const [perfilAberto, setPerfilAberto] = useState(false);
+  const [erroPerfil, setErroPerfil] = useState<ErroPerfil | null>(null);
+
+  function preencherExemplo() {
+    setCnpj(EXEMPLO_MERCADINHO.cnpj);
+    setFaturamento(EXEMPLO_MERCADINHO.faturamento);
+    setPerfil(EXEMPLO_MERCADINHO.perfil);
+    setErros({});
+    setErroPerfil(null);
+    setSituacao({ tipo: "aviso", mensagem: "Exemplo fictício do mercadinho preenchido. Confira e clique em Analisar." });
+  }
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -43,8 +63,33 @@ export function FormularioAnalise() {
     if (novosErros.cnpj) return campoCnpj.current?.focus();
     if (novosErros.faturamento) return campoFaturamento.current?.focus();
 
+    // Optional comparison: only sent when the merchant's payment mix was typed.
+    let comparacao = null;
+    if (perfilEmUso(perfil)) {
+      const lido = lerPerfil(perfil);
+      if (!lido.ok) {
+        setErroPerfil(lido.erro);
+        setPerfilAberto(true);
+        // Wait for the section to be open and the error rendered before moving focus.
+        return requestAnimationFrame(() => document.getElementById(`${id}-${lido.erro.campo}`)?.focus());
+      }
+      comparacao = lido.perfil;
+    }
+    setErroPerfil(null);
+
     setSituacao({ tipo: "enviando" });
-    const resposta = await consultar({ cnpj: soDigitos(cnpj), perfil_vendas: { faturamento_mensal: valor! } });
+    limparConsulta(); // a query is really going out: forget the last result, so a failure never shows it
+    const resposta = await consultar({
+      cnpj: soDigitos(cnpj),
+      perfil_vendas: { faturamento_mensal: valor!, ...(comparacao && { mix: comparacao.mix }) },
+      ...(comparacao && {
+        situacao_atual: {
+          taxas: comparacao.taxas,
+          custo_maquina_mensal: comparacao.custo_maquina_mensal,
+          custo_saida: comparacao.custo_saida,
+        },
+      }),
+    });
 
     if (resposta.tipo === "ok") {
       salvarConsulta(resposta.resultado);
@@ -130,6 +175,16 @@ export function FormularioAnalise() {
           {enviando ? "Analisando…" : "Analisar"}
         </button>
       </div>
+
+      <PerfilVendas
+        idBase={id}
+        perfil={perfil}
+        aoMudar={setPerfil}
+        erro={erroPerfil}
+        aberto={perfilAberto}
+        aoAbrir={setPerfilAberto}
+        aoPreencherExemplo={preencherExemplo}
+      />
 
       <div className={estilos.retorno} role="status" aria-live="polite">
         {situacao.tipo === "enviando" && <p>Analisando o CNPJ… Na primeira consulta do dia pode levar até um minuto.</p>}

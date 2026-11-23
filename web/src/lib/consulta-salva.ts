@@ -17,6 +17,16 @@ export function salvarConsulta(resultado: ConsultaResultado): void {
   }
 }
 
+/** Forgets the last result, so a new query that fails never leaves the previous company on screen. */
+export function limparConsulta(): void {
+  naMemoria = null;
+  try {
+    sessionStorage.removeItem(CHAVE);
+  } catch {
+    // Storage blocked: nothing was saved there.
+  }
+}
+
 export function lerConsulta(): ConsultaResultado | null {
   if (naMemoria) return naMemoria;
   try {
